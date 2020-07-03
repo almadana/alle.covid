@@ -99,7 +99,8 @@ library(ggpubr)
 library(segmented)
 nRepeats = 2000
 alleeCoefs = c(F,T)
-subExpCoefs = c(0.8,1)
+#subExpCoefs = c(0.8,1) #con y sin subexp
+subExpCoefs = 0.8
 nRows=length(alleeCoefs)*length(subExpCoefs)
 
 cuadrantes = tibble(n=seq(1,nRows*nRepeats),
