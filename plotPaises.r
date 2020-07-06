@@ -17,13 +17,17 @@ plot_bbp_slopes=
                 #palette = "#000080",
                 palette = c("#ff9e47","#14b74b","#000080"),
                 
-                ylim=c(0,10),
-                xlim=c(0,2)
+ #               ylim=c(0,15),
+#                xlim=c(0,1.5)
   )
-plot_bbp_slopes$sp = plot_bbp_slopes$sp +
+plot_bb_slopes$yplot = plot_bb_slopes$yplot + ylim(c(0,10))
+plot_bb_slopes$xplot = plot_bb_slopes$xplot + xlim(c(0,2))
+
+plot_bbp_slopes$sp = plot_bbp_slopes$sp + ylim(0,10)+ xlim(0,2)+
   stat_chull(data=cuadrantes,aes(fill=allee.f),alpha=0.5,geom="polygon") + 
   geom_abline(intercept = 0,slope = 1)
 plot_bbp_slopes$sp$labels$colour=""
+
 plot_bbp_slopes
 
 
