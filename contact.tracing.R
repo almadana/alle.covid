@@ -1,105 +1,158 @@
-# L.max, is the maximum number of effictive contacts that an infected can achieve (e.g. having enough time to effectively transmit the virus)
-# Infected, is the number of infected people in the population
-# B.link, is the proibablity of transmision through an effective link. It is determined by behaviour as mask use, persons distances, etc
-# N.tree.day, is the number of contacts tree that can be majke in a day
-# n.by.tree, is the average number of individuals in a contact tree
-# day.to.report, average number of days from the INFECTION to the report (detection by syntoms, contact tracing, or test)
-
-# P.find, is the probability of find the exposed person of the tree (in a phone call or app for cell tracking)
-# N.population is the total population size
-# alpha is the fraction of asyntomatics
-
-##LINEAS PARA CORRER: a<-space.Rt.inf(L.max = 12, P.find = 0.2, n.by.tree = 10, B.link = 0.3, day.to.report = 7, N.population = 2000 )
-#b<-ifelse(a>1,1,0)
-#image(t(b[1:1600,1:1000]), col=c("royalblue2", "firebrick3")) 
+###### Plot the state space of Rt against N infected for different interventions
 
 
-#p, subexponential parameter
+# maxLinks - maximum number of close contacts that an
+# infected can achieve 
+# Infected - number of infected people in the population
+# pInfection - probability that a close contact results 
+# in an infectionof transmision through an effective
+# link.
 
-R.time<-function(L.max,Infected, P.find, N.call.day, N.tree.day, n.by.tree, B.link, day.to.report, N.population){
+# pCall - probability that an attempt to reach a detected contact
+# (e.g. phone call) succeeds 
+# Npop is the total population size
 
-  Max.N<-N.tree.day*n.by.tree                                 # Maximum number of individulas that can be identfied in the conact tree
-  detected<-Infected*Max.N/(Max.N+Infected)                   # detected cases is the expected Binomial with N: number of infected, p: 
-                                                              # Probability of detection (is a decreasing function of infected cases (Hill function with exponent 1)) 
-  
-  P.effective.call<-1-(1-P.find)^(N.call.day/detected)        # is the probability of contact and alert the exposed. It involve the probability of fin th person
-                                                              # in the contact (e.g. phone or app)
+library(tidyr)
+library(ggplot2)
+library(reshape)
+library(dplyr)
 
-  Exp.day<- 1/P.effective.call                               # Expected day from a geometric distribution (day at which stop contacting)
-  Links<-(L.max*(Exp.day^4)/((Exp.day^4)+7^4))               # Number of effective contacts. At day 7 half of the maximum effective contacts (links) take place. Until day 4 no effective links
-  f.sus<-(N.population-Infected)/N.population        # OJO CAMBIR ENmodelo dinamico POR (S-I-R)/S =f.sus probability that he linked indiviual is susceptible
-  Rt<-((f.sus)*((detected/Infected)*Links*B.link +((Infected-detected)/Infected)*L.max*B.link))  #cambiar por estimacion en base a dias de infectado....  en modelo dinamico Fsus
-  Rt
+# function of effective social links by day
+links_fun <- function(maxLinks, day){
+  return(maxLinks * (day^4) / (day^4 + 7^4))
 }
 
-R.time.2.0<-function(L.max,Infected, P.find, N.call.day, N.tree.day, n.by.tree, B.link, day.to.report, N.population){
-  detected<-Infected*Max.N/(Max.N+Infected)                   # detected cases is the expected Binomial with N: number of infected, p: 
-  # Probability of detection (is a decreasing function of infected cases (Hill function with exponent 1)) 
-  
-  P.detected<-P.find*min(1.)*(1-(1-P.find)^(P.find*Infected/detected))        # is the probability of contact and alert the exposed. It involve the probability of fin th person
-  # in the contact (e.g. phone or app)
-  
-  Exp.day<- 1/P.detected                               # Expected day from a geometric distribution (day at which stop contacting)
-  Links<-(L.max*(Exp.day^4)/((Exp.day^4)+7^4))               # Number of effective contacts. At day 7 half of the maximum effective contacts (links) take place. Until day 4 no effective links
-  f.sus<-(N.population-Infected)/N.population        # OJO CAMBIR ENmodelo dinamico POR (S-I-R)/S =f.sus probability that he linked indiviual is susceptible
-  Rt<-((f.sus)*((detected/Infected)*Links*B.link +((Infected-detected)/Infected)*L.max*B.link))  #cambiar por estimacion en base a dias de infectado....  en modelo dinamico Fsus
-  Rt
-  
-  
+# calculate the expected number of links of detected individuals
+expected_links <- function(maxLinks, pContact){
+  days <- c(1:20)
+  pDay <- dgeom(days, pContact)
+  links <- links_fun(maxLinks, days)
+  expectedLinks <- sum(pDay * links)
+  return(expectedLinks)
 }
 
+# calculate Rt for given parameters
+calculate_Rt <- function(maxDetected, maxLinks, Infected, pCall, NDailyCalls,
+                   pInfection, Npop){
+  # Expected number of detected individuals
+  pDetected <- maxDetected / (maxDetected + Infected)
+  NDetected <- pDetected * Infected
+  # Daily probability that a detected individual is contacted
+  pContact <- 1 - (1-pCall)^(NDailyCalls/NDetected)
+  # Number of expected social links for detected individuals
+  detectedLinks <- expected_links(maxLinks, pContact)
+  # Probability that an individual is susceptible
+  pSusceptible<- (Npop - Infected) / Npop 
+  # Rt calculation
+  Rt <- pSusceptible * pInfection * (pDetected*detectedLinks + (1-pDetected)*maxLinks)
+  return(Rt)
+}
+
+# calculates Rt for a vector of values of Infected
+calculate_Rt_range <- function(maxDetected, maxLinks, Infected, pCall,
+                               NDailyCalls, pInfection, Npop){
+  RtVec <- vector()
+  for (i in c(1:length(Infected))) {
+    RtVec[i] <- calculate_Rt(maxDetected, maxLinks, Infected[i], pCall,
+                             NDailyCalls, pInfection, Npop)
+  }
+  return(RtVec)
+}
 
 ##############################
 # Space Rt~ Infected + strategy
 
-### Number of calls
-space.Rt.inf<-function(L.max, P.find,  n.by.tree, B.link, day.to.report, N.population){
-  out<-matrix(NA,ncol=800, nrow=1500)
-  for (i in 1:1500){
-print(i)    
-    for(j in 1:800){
-
-    rr<-R.time(L.max=L.max,Infected=i, P.find=P.find, N.call.day=j, N.tree.day=max(round(j*0.2),1), n.by.tree=n.by.tree, B.link=B.link, day.to.report=day.to.report, N.population=N.population)
-    out[i,j]<-rr
-    }
+### Calculate Rt for a varying number of maximum contacts
+Rt_calls <- function(maxLinks, maxDetected, pCall,  pInfection,
+                     NDailyCalls, Npop, propInfectedMax = 1){
+  infected <- c(1:round(Npop*propInfectedMax))
+  RtSpace <- matrix(NA, ncol=length(maxDetected), nrow=length(infected))
+  for(md in c(1:length(maxDetected))) {
+    RtSpace[,md] <-  calculate_Rt_range(maxDetected=maxDetected[md],
+                                        maxLinks=maxLinks, Infected=infected,
+                                        pCall=pCall,
+                                        NDailyCalls=NDailyCalls,
+                                        pInfection=pInfection,
+                                        Npop=Npop)
   }
-out  
+  colnames(RtSpace) <- maxDetected
+  rownames(RtSpace) <- infected
+  return(RtSpace)
 }
 
-################
-
-space.Rt.inf.L.max<-function(P.find,  n.by.tree, B.link, day.to.report, N.population, N.call.day, N.tree.day){
-  out<-matrix(NA,ncol=100, nrow=2000)
-  for (i in 1:2000){
-    print(i)    
-    for(j in 1:100){
-      
-      rr<-R.time(L.max=j,Infected=i, P.find=P.find, N.call.day=N.call.day, N.tree.day=N.tree.day, n.by.tree=n.by.tree, B.link=B.link, day.to.report=day.to.report, N.population=N.population)
-      out[i,j]<-rr
-    }
+### Calculate Rt for a varying number of maximum links
+Rt_links <- function(maxLinks, maxDetected, pCall,  pInfection,
+                     NDailyCalls, Npop){
+  RtLinks <- matrix(NA, ncol=length(maxLinks), nrow=Npop)
+  infected <- c(1:Npop)
+  for(ml in c(1:length(maxLinks))) {
+    RtLinks[,ml] <-  calculate_Rt_range(maxDetected=maxDetected,
+                                        maxLinks=maxLinks[ml], Infected=infected,
+                                        pCall=pCall,
+                                        NDailyCalls=NDailyCalls,
+                                        pInfection=pInfection,
+                                        Npop=Npop)
   }
-  out  
+  return(RtLinks)
 }
 
-#############
-space.Rt.inf.Bt<-function(L.max,P.find,  n.by.tree, day.to.report, N.population, N.call.day, N.tree.day){
-  out<-matrix(NA,ncol=300, nrow=2000)
-  Bl<-seq(0,1,,300)
-  for (i in 1:2000){
-    print(i)    
-    for(j in 1:300){
-      rr<-R.time(L.max=L.max,Infected=i, P.find=P.find,
-                 N.call.day=N.call.day, N.tree.day=N.tree.day, 
-                 n.by.tree=n.by.tree, B.link=Bl[j], day.to.report=day.to.report,
-                 N.population=N.population)
-      out[i,j]<-rr
-    }
+### Calculate Rt for a varying number of pInfection
+Rt_pInfection <- function(maxLinks, maxDetected, pCall,  pInfection,
+                     NDailyCalls, Npop){
+  RtInf <- matrix(NA, ncol=length(pInfection), nrow=Npop)
+  infected <- c(1:Npop)
+  for(pI in c(1:length(pInfection))) {
+    RtInf[,pI] <-  calculate_Rt_range(maxDetected=maxDetected,
+                                        maxLinks=maxLinks, Infected=infected,
+                                        pCall=pCall,
+                                        NDailyCalls=NDailyCalls,
+                                        pInfection=pInfection[pI],
+                                        Npop=Npop)
   }
-  out  
+  return(RtInf)
 }
 
 
+###############################
+# Make the space plots
+###############################
 
+#general parameters
+nTreeDay[nTreeDay < 1] <- 1
+pCall <- 0.2
+pInfection <- 0.3
+Npop <- 2000
+maxLinks <- 12
+propInfectedMax = 0.8
 
+# Space plot for maximum number of people that can be detected
+nByTree <- 10
+nTreeDay <- c(1:700) * 0.2
+maxDetected_Vec <- nByTree * nTreeDay
+callsMatrix <- Rt_calls(maxLinks = maxLinks, maxDetected = maxDetected_Vec,
+                        pCall = pCall, pInfection = pInfection,
+                        NDailyCalls = NDailyCalls, Npop = Npop,
+                        propInfectedMax = propInfectedMax)
+
+# reshape matrix into dataframe for plotting
+callsLong <- melt.array(callsMatrix, varnames = c("Infected", "maxDetected")) %>%
+  dplyr::rename(., Rt = value) %>%
+  dplyr::mutate(., Rt_exp = as.factor(as.integer(Rt > 1))) %>%
+  as_tibble(.) %>%
+  dplyr::filter(., (Infected %% 2) == 0)
+
+RtSpacePlot <- ggplot(callsLong, aes(x = maxDetected, y = Infected, fill = Rt_exp)) +
+  geom_raster() +
+  scale_fill_manual(values = c("#243faf", "#fa3d1b"),
+                    name = "Rt", labels = c("< 1", ">= 1")) +
+  scale_x_continuous(name = "Detection capacity (N infected)", expand = c(0,0)) +
+  scale_y_continuous(name = "Infected individuals", expand = c(0,0)) +
+#  geom_segment(data = arrowDf,
+#               aes(x = x, xend = x, y = y, yend = y+arrowLength, fill = "black"),
+#            arrow = arrow(length = unit(0.5, "cm")))+
+  annotate("text", x = 500, y = 750, label = "Growdth", size = 20) +
+  annotate("text", x = 950, y = 200, label = "Containment", size = 20,
+           color = "white") +
+  theme_bw()
 
 
