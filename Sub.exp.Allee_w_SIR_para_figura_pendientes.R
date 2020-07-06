@@ -108,7 +108,7 @@ pob_paises = c(16.3,1.57)
 
 N=round(10^rnorm(nRepeats,pob_paises[1],pob_paises[2]))  #valores para condados
 #subExpCoefs = c(0.8,1) #con y sin subexp
-subExpCoefs = 0.7
+subExpCoefs = 0.65
 nRows=length(alleeCoefs)*length(subExpCoefs)
 
 cuadrantes = tibble(n=seq(1,nRows*nRepeats),
@@ -145,20 +145,20 @@ cuadrantes %>% group_by(allee.f,subexp.f) %>%
 #filtrar casos con muy poco slope inicial y mucho final - cociente>5000
 #cuadrantes=cuadrantes %>%  filter(cociente<5000,cociente>0)
 
-cuadrantes %>% ggplot(aes(x=log(cociente),fill=interaction(allee.f,subexp.f))) + geom_histogram(alpha=.3) + facet_wrap(~subexp.f*allee.f)
-cuadrantes %>% ggplot(aes(x=log(cociente),fill=allee)) + geom_histogram() 
-cuadrantes %>% ggplot(aes(x=resta,fill=allee.f)) + geom_histogram() + facet_grid(rows = "allee.f~subexp.f")
-
-cuadrantes %>% ggplot(aes(x=log(cociente),fill=allee.f)) + geom_histogram() + facet_grid(rows = "allee.f~subexp.f",)
-
-cuadrantes %>% ggplot(aes(y=log(cociente),x=log(1+coef.2),col=allee.f)) + geom_point(alpha=.2)+
-  facet_wrap(~subexp.f)+
-  labs(x="log(1+initial slope)",y="log(second slope/first slope)")
-
-cuadrantes %>% ggplot(aes(y=coef.4,x=coef.2,col=allee.f)) + geom_point(alpha=.5)+
-  facet_wrap(~subexp.f)+
-  labs(x="log(first slope)",y="log(second slope)")
-
+# cuadrantes %>% ggplot(aes(x=log(cociente),fill=interaction(allee.f,subexp.f))) + geom_histogram(alpha=.3) + facet_wrap(~subexp.f*allee.f)
+# cuadrantes %>% ggplot(aes(x=log(cociente),fill=allee)) + geom_histogram() 
+# cuadrantes %>% ggplot(aes(x=resta,fill=allee.f)) + geom_histogram() + facet_grid(rows = "allee.f~subexp.f")
+# 
+# cuadrantes %>% ggplot(aes(x=log(cociente),fill=allee.f)) + geom_histogram() + facet_grid(rows = "allee.f~subexp.f",)
+# 
+# cuadrantes %>% ggplot(aes(y=log(cociente),x=log(1+coef.2),col=allee.f)) + geom_point(alpha=.2)+
+#   facet_wrap(~subexp.f)+
+#   labs(x="log(1+initial slope)",y="log(second slope/first slope)")
+# 
+# cuadrantes %>% ggplot(aes(y=coef.4,x=coef.2,col=allee.f)) + geom_point(alpha=.5)+
+#   facet_wrap(~subexp.f)+
+#   labs(x="log(first slope)",y="log(second slope)")
+# 
 cuadrantes$allee.f = factor(cuadrantes$allee.f)
 
 # cuadrantes %>% mutate_at(c("coef.2","coef.3","cociente"),.funs = list("log"=function(x) log(1+x))) %>% 
@@ -169,6 +169,9 @@ cuadrantes$allee.f = factor(cuadrantes$allee.f)
 #   xlab="log(1+initial slope)",
 #   ylab="log(1+final slope / initial slope)"
 # ) 
+colnames(cuadrantes)[c(8,10)]=c("initial.slope","slope.after.thresh")
+
+cuadrantes=cuadrantes %>%  filter(initial.slope>0)
 
 plot_slopes = 
 cuadrantes %>% #mutate_at(c("coef.2","coef.4"),.funs = list("log10"=function(x) log10(1+x))) %>%
@@ -179,12 +182,12 @@ ggscatterhist(x="initial.slope",y="slope.after.thresh",
               xlab="initial slope",
               ylab="slope after threshold",
               palette = c("#ff9e47","#14b74b"),
-              ylim=c(0,10)
+              ylim=c(0,15)
 )
 plot_slopes$sp <-plot_slopes$sp+geom_abline(slope=1,intercept = 0)
 plot_slopes$sp$labels$colour=""
-plot_slopes$yplot=plot_slopes$yplot + ylim(c(0,10))
-plot_slopes$xplot=plot_slopes$xplot + xlim(c(0,2))
+plot_slopes$yplot=plot_slopes$yplot + ylim(c(0,15))
+#plot_slopes$xplot=plot_slopes$xplot + xlim(c(0,2))
 plot_slopes
 print_plot_slopes = print(plot_slopes)
 ggsave(print_plot_slopes,filename = "fig2_slopes_paises.pdf",height = 4,width = 5)
