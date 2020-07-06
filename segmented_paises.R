@@ -1,9 +1,12 @@
-casos.world.264 <- read.delim("~/Downloads/casos.world.264.tab")
+library(segmented)
 
+
+casos.world.264 <- read.delim("./casos.world.264.tab")
+
+par(mfrow=c(5,15), mar=c(1,1,2,0.5 ))
 paises<-function(casos.world.264){
   library("segmented")
   out<-NULL
-  par(mfrow=c(5,15), mar=c(2,2,3,0.5 ))
   for (i in 1:nrow(casos.world.264)){
     ii<-which(casos.world.264[i,18:154]>=1)
     if(length(ii)>15){
