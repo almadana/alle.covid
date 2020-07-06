@@ -100,13 +100,15 @@ library(dplyr)
 library(ggplot2)
 library(ggpubr)
 library(segmented)
+library(ggforce)
 nRepeats = 2000
 alleeCoefs = c(F,T)
 pob_condados = c(5.27,0.46)
 pob_paises = c(16.3,1.57)
 
 
-N=round(10^rnorm(nRepeats,pob_paises[1],pob_paises[2]))  #valores para condados
+N=round(10^rnorm(nRepeats,pob_paises[1],pob_paises[2]))  #valores para paises
+#N=round(10^rnorm(nRepeats,pob_condados[1],pob_condados[2]))  #valores para condados
 #subExpCoefs = c(0.8,1) #con y sin subexp
 subExpCoefs = 0.65
 nRows=length(alleeCoefs)*length(subExpCoefs)
@@ -181,7 +183,7 @@ ggscatterhist(x="initial.slope",y="slope.after.thresh",
               ggtheme=theme_bw(),
               xlab="initial slope",
               ylab="slope after threshold",
-              palette = c("#ff9e47","#14b74b"),
+              palette = c("#b33018","#14b74b"),
               ylim=c(0,15)
 )
 plot_slopes$sp <-plot_slopes$sp+geom_abline(slope=1,intercept = 0)
