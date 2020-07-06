@@ -1,7 +1,7 @@
 ###################################################################
 ##### Dynamic
 
-dyn.sub.exp.Allee.SIR<-function(I0, bet=1.4, gam=5, p, t, Allee, migration, size, I50, K){
+dyn.sub.exp.Allee.SIR<-function(I0, bet=1.3, gam=5, p, t, Allee, migration, size, I50, K){
   out<-matrix(0, nrow = t, ncol=5)
   colnames(out)<-c("S","I","R", "New.I", "Imported")
   out[1,]<-c(K,I0,0,0,0)
@@ -40,8 +40,9 @@ allee=T
 
 par(mfrow=c(10,10), mar=c(1.5,1.5,0.5,0.5 ))
 #for(i in 1:200){
-generador <- function(p_se,allee) {
-  dyn.sub.exp.Allee.SIR(I0=10, bet=0.8, gam=3 , p=p_se, t=100,  migration=1, size=0.2, I50=10, K=100000, Allee = allee )->al
+generador <- function(p_se,allee,N) {
+  rm(.Random.seed, envir=globalenv())
+  dyn.sub.exp.Allee.SIR(I0=10, bet=0.8, gam=3 , p=p_se, t=100,  migration=1, size=0.2, I50=10, K=N, Allee = allee )->al
   imp<-cumsum(al[,5])  # cumulative number of imported cases
   al<-cumsum(al[,4])   # cumulative number of cases
   I.min<-which(al>9)
@@ -55,6 +56,7 @@ generador <- function(p_se,allee) {
   #imp<-imp[which(al>10 )]
   if(length(al)>10){
     plot(log10(al)~log10(I(1:length(al))), bty="l", pch=19, col="darkgreen", main="")
+    
   y<-log10(al)
   z<-log10(imp)
   x<-log10(1:length(y))
@@ -64,6 +66,7 @@ generador <- function(p_se,allee) {
   #aic<-AIC(ff0,ffp, ff1)[,2]
   #wi<-exp(-0.5*(aic-min(aic)))/sum(exp(-0.5*(aic-min(aic))))
   cfs = summary(ff1)
+  plot(ff1, add=T, col="red")
   
   return(c(cfs$coefficients[,1],ifelse(is.null(cfs$psi),NA,cfs$psi[2])))
 #  plot(ff1, add=T, col="red")
@@ -99,18 +102,24 @@ library(ggpubr)
 library(segmented)
 nRepeats = 2000
 alleeCoefs = c(F,T)
+pob_condados = c(5.27,0.46)
+pob_paises = c(16.3,1.57)
+
+
+N=round(10^rnorm(nRepeats,pob_paises[1],pob_paises[2]))  #valores para condados
 #subExpCoefs = c(0.8,1) #con y sin subexp
-subExpCoefs = 0.8
+subExpCoefs = 0.7
 nRows=length(alleeCoefs)*length(subExpCoefs)
 
 cuadrantes = tibble(n=seq(1,nRows*nRepeats),
                   allee=rep(alleeCoefs,nRows/length(alleeCoefs)*nRepeats),
                     allee.f = ifelse(allee,"with Allee effect","without Allee effect"),
-                    subexp = rep(subExpCoefs,each=nRows/length(subExpCoefs)*nRepeats),subexp.f = ifelse(subexp<1,"with subexp. growth","without subexp. growth"))
+                    subexp = rep(subExpCoefs,each=nRows/length(subExpCoefs)*nRepeats),subexp.f = ifelse(subexp<1,"with subexp. growth","without subexp. growth"),
+                    N=rep(N,each=nRows))
 
 cuadrantes = cuadrantes %>% rowwise() %>% 
   # mutate(modelo=list(generador(subexp,allee)),fit=list(coef(modelo,include.psi=T)))
-  mutate(fit=list(generador(subexp,allee)))
+  mutate(fit=list(generador(subexp,allee,N)))
 
 cuadrantes = 
 cuadrantes %>% 
@@ -121,7 +130,8 @@ cuadrantes %>%
   rowwise() %>% 
   mutate(cociente = coef.3/coef.2,resta=coef.3 - coef.2,
          angle = atan(abs((coef.3 - coef.2)/(1-coef.3*coef.2))),
-         infec.Corte=ifelse(is.null(coef.5),NA,coef.1 + coef.2*coef.5)) 
+         coef.4 = coef.2+coef.3,
+         infec.Corte=ifelse(is.null(coef.5),NA,coef.1 + coef.4*coef.5))
 
 
 #cuadrantes = cuadrantes %>% rowwise() %>% mutate(angle = atan(abs((coef.3 - coef.2)/(1-coef.3*coef.2)))  )
@@ -133,7 +143,7 @@ cuadrantes %>% group_by(allee.f,subexp.f) %>%
   summarize_at(c("cociente","resta","angle"),.funs = list("median"=median,"iqr"=IQR),na.rm=T)
 
 #filtrar casos con muy poco slope inicial y mucho final - cociente>5000
-cuadrantes=cuadrantes %>%  filter(cociente<5000,cociente>0)
+#cuadrantes=cuadrantes %>%  filter(cociente<5000,cociente>0)
 
 cuadrantes %>% ggplot(aes(x=log(cociente),fill=interaction(allee.f,subexp.f))) + geom_histogram(alpha=.3) + facet_wrap(~subexp.f*allee.f)
 cuadrantes %>% ggplot(aes(x=log(cociente),fill=allee)) + geom_histogram() 
@@ -145,7 +155,7 @@ cuadrantes %>% ggplot(aes(y=log(cociente),x=log(1+coef.2),col=allee.f)) + geom_p
   facet_wrap(~subexp.f)+
   labs(x="log(1+initial slope)",y="log(second slope/first slope)")
 
-cuadrantes %>% ggplot(aes(y=log(1+coef.3),x=log(1+coef.2),col=allee.f)) + geom_point(alpha=.2)+
+cuadrantes %>% ggplot(aes(y=coef.4,x=coef.2,col=allee.f)) + geom_point(alpha=.5)+
   facet_wrap(~subexp.f)+
   labs(x="log(first slope)",y="log(second slope)")
 
@@ -160,14 +170,24 @@ cuadrantes$allee.f = factor(cuadrantes$allee.f)
 #   ylab="log(1+final slope / initial slope)"
 # ) 
 
-cuadrantes %>% mutate_at(c("coef.2","coef.3","cociente"),.funs = list("log10"=function(x) log10(1+x))) %>% 
-ggscatterhist(x="coef.2_log10",y="coef.3_log10",
-              color="allee.f",alpha=0.6,size=3,
+plot_slopes = 
+cuadrantes %>% #mutate_at(c("coef.2","coef.4"),.funs = list("log10"=function(x) log10(1+x))) %>%
+ggscatterhist(x="initial.slope",y="slope.after.thresh",
+              color="allee.f",alpha=.3,size=3,
               margin.plot="boxplot",
               ggtheme=theme_bw(),
-              xlab="log10(1+initial slope)",
-              ylab="log10(1+final slope)"
+              xlab="initial slope",
+              ylab="slope after threshold",
+              palette = c("#ff9e47","#14b74b"),
+              ylim=c(0,10)
 )
+plot_slopes$sp <-plot_slopes$sp+geom_abline(slope=1,intercept = 0)
+plot_slopes$sp$labels$colour=""
+plot_slopes$yplot=plot_slopes$yplot + ylim(c(0,10))
+plot_slopes$xplot=plot_slopes$xplot + xlim(c(0,2))
+plot_slopes
+print_plot_slopes = print(plot_slopes)
+ggsave(print_plot_slopes,filename = "fig2_slopes_paises.pdf",height = 4,width = 5)
 
 cuadrantes %>% mutate_at(c("coef.2","coef.3","cociente"),.funs = list("log"=function(x) log(1+x))) %>% 
   ggscatterhist(x="coef.2",y="angle",
@@ -175,7 +195,8 @@ cuadrantes %>% mutate_at(c("coef.2","coef.3","cociente"),.funs = list("log"=func
                 margin.plot="boxplot",
                 ggtheme=theme_bw(),
                 xlab="initial slope",
-                ylab="angle between slopes"
+                ylab="angle between slopes",
+                palette = c("#ff9e47","#14b74b")
   )
 
 cuadrantes %>% 
