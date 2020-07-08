@@ -110,7 +110,7 @@ pob_paises = c(16.3,1.57)
 N=round(10^rnorm(nRepeats,pob_paises[1],pob_paises[2]))  #valores para paises
 #N=round(10^rnorm(nRepeats,pob_condados[1],pob_condados[2]))  #valores para condados
 #subExpCoefs = c(0.8,1) #con y sin subexp
-subExpCoefs = 0.65
+subExpCoefs = 0.7
 nRows=length(alleeCoefs)*length(subExpCoefs)
 
 cuadrantes = tibble(n=seq(1,nRows*nRepeats),
@@ -175,6 +175,8 @@ colnames(cuadrantes)[c(8,10)]=c("initial.slope","slope.after.thresh")
 
 cuadrantes=cuadrantes %>%  filter(initial.slope>0)
 
+
+
 plot_slopes = 
 cuadrantes %>% #mutate_at(c("coef.2","coef.4"),.funs = list("log10"=function(x) log10(1+x))) %>%
 ggscatterhist(x="initial.slope",y="slope.after.thresh",
@@ -194,6 +196,8 @@ plot_slopes
 print_plot_slopes = print(plot_slopes)
 ggsave(print_plot_slopes,filename = "fig2_slopes_paises.pdf",height = 4,width = 5)
 
+cuadrantes_paises = cuadrantes
+save(cuadrantes_paises,file="cuadrantes_paises.RData")
 cuadrantes %>% mutate_at(c("coef.2","coef.3","cociente"),.funs = list("log"=function(x) log(1+x))) %>% 
   ggscatterhist(x="coef.2",y="angle",
                 color="allee.f",alpha=0.6,size=3,
