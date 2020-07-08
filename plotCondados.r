@@ -38,10 +38,17 @@ bb %>% group_by(bajoUmbral) %>% summarize(m=mean(slope.after.thresh),mx=max(slop
 # 
 # 
 
+<<<<<<< HEAD
 bb$allee.f=factor("U.S. counties",levels = c(levels(cuadrantes_paises$allee.f),"U.S. counties"))
 
 xlims=c(-0.25,2.5)
 ylims= c(0,8)
+=======
+bb$allee.f=factor("U.S. counties",levels = c(levels(cuadrantes$allee.f),"U.S. counties"))
+
+xlims=c(-0.25,2.5)
+ylims= c(-.5,8)
+>>>>>>> alvaro
 plot_bb_slopes=
 bb %>% mutate_at(c("initial.slope","slope.after.thresh"),.funs = list("log10"=function(x) log10(1+x))) %>% 
   ggscatterhist(x="initial.slope",y="slope.after.thresh",
@@ -65,18 +72,28 @@ plot_bb_slopes$sp =
   plot_bb_slopes$sp +
     geom_mark_hull(concavity = 5,radius=.035,aes(fill=allee.f)) + 
 #  stat_chull(aes(fill=allee.f),alpha=0.5,geom="ellipse") + 
+<<<<<<< HEAD
     geom_abline(intercept = 0,slope = 1) 
+=======
+    geom_abline(intercept = 0,slope = 1,linetype="dotted") 
+>>>>>>> alvaro
 
 plot_bb_slopes$sp$labels$colour=""
 plot_bb_slopes$sp$labels$fill=""
 plot_bb_slopes$yplot = plot_bb_slopes$yplot + ylim(ylims)
+<<<<<<< HEAD
 plot_bb_slopes$xplot = plot_bb_slopes$xplot + xlim(xlims)
 
 plot_bb_slopes$xplot + xlim(xlims)
+=======
+plot_bb_slopes$xplot = plot_bb_slopes$xplot + ylim(xlims) # OJO!! ES UN BARPLOT ROTADO 90° - PEÑAROL INTELIGENCIA
+>>>>>>> alvaro
 
 plot_bb_slopes
 
+plot_bb_slopes =print(plot_bb_slopes)
 
+ggsave(plot_bb_slopes,file="fig2_counties.pdf",width = 5,height = 4)
 
 colnames(cuadrantes)[c(8,10)]=c("initial.slope","slope.after.thresh")
 colnames(bb)
