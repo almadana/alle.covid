@@ -68,7 +68,7 @@ generador <- function(p_se,allee,N) {
   cfs = summary(ff1)
   plot(ff1, add=T, col="red")
   
-  return(c(cfs$coefficients[,1],ifelse(is.null(cfs$psi),NA,cfs$psi[2])))
+  return(c(cfs$coefficients[,1],ifelse(is.null(cfs$psi),NA,cfs$psi[2]),al))
 #  plot(ff1, add=T, col="red")
   }
 }
@@ -101,7 +101,7 @@ library(ggplot2)
 library(ggpubr)
 library(segmented)
 library(ggforce)
-nRepeats = 2000
+nRepeats = 10
 alleeCoefs = c(F,T)
 pob_condados = c(5.27,0.46)
 pob_paises = c(16.3,1.57)
@@ -123,11 +123,11 @@ cuadrantes = cuadrantes %>% rowwise() %>%
   # mutate(modelo=list(generador(subexp,allee)),fit=list(coef(modelo,include.psi=T)))
   mutate(fit=list(generador(subexp,allee,N)))
 
-cuadrantes = 
+#cuadrantes = 
 cuadrantes %>% 
   unnest(fit)  %>% 
   group_by(n) %>% 
-  mutate(coef=paste0("coef.",1:n())) %>% 
+  mutate(coef=c(paste0("coef.",1:5),paste0("t.",1:(n()-5)))) %>% View()
   spread(key=coef,value  = fit) %>% 
   rowwise() %>% 
   mutate(cociente = coef.3/coef.2,resta=coef.3 - coef.2,
@@ -175,8 +175,14 @@ colnames(cuadrantes)[c(8,10)]=c("initial.slope","slope.after.thresh")
 
 cuadrantes=cuadrantes %>%  filter(initial.slope>0)
 
+
+
+## -------------- PLOT CON CONVEX HULL -----------------
+xlims=c(-0.25,2)
+ylims= c(-1,15)
 plot_slopes = 
 cuadrantes %>% #mutate_at(c("coef.2","coef.4"),.funs = list("log10"=function(x) log10(1+x))) %>%
+  slice(sample(nrow(cuadrantes),1000)) %>% 
 ggscatterhist(x="initial.slope",y="slope.after.thresh",
               color="allee.f",alpha=.3,size=3,
               margin.plot="boxplot",
@@ -184,17 +190,25 @@ ggscatterhist(x="initial.slope",y="slope.after.thresh",
               xlab="initial slope",
               ylab="slope after threshold",
               palette = c("#b33018","#14b74b"),
-              ylim=c(0,15)
+              ylim=ylims,
+              xlim=xlims
 )
-plot_slopes$sp <-plot_slopes$sp+geom_abline(slope=1,intercept = 0)
+plot_slopes$sp <-plot_slopes$sp+
+  geom_abline(slope=1,intercept = 0,linetype="dotted") +  
+  geom_mark_hull(concavity = 5,radius=.035,aes(fill=allee.f)) 
+
 plot_slopes$sp$labels$colour=""
-plot_slopes$yplot=plot_slopes$yplot + ylim(c(0,15))
-#plot_slopes$xplot=plot_slopes$xplot + xlim(c(0,2))
+plot_slopes$sp$labels$fill=""
+plot_slopes$yplot=plot_slopes$yplot + ylim(ylims)
+plot_slopes$xplot=plot_slopes$xplot + ylim(xlims)
 plot_slopes
 print_plot_slopes = print(plot_slopes)
-ggsave(print_plot_slopes,filename = "fig2_slopes_paises.pdf",height = 4,width = 5)
+ggsave(print_plot_slopes,filename = "fig1_slopes.pdf",height = 4,width = 5)
 
-cuadrantes %>% mutate_at(c("coef.2","coef.3","cociente"),.funs = list("log"=function(x) log(1+x))) %>% 
+##############################
+
+cuadrantes %>% #mutate_at(c("coef.2","coef.3","cociente"),.funs = list("log"=function(x) log(1+x))) %>% 
+  
   ggscatterhist(x="coef.2",y="angle",
                 color="allee.f",alpha=0.6,size=3,
                 margin.plot="boxplot",
