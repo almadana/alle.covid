@@ -56,10 +56,12 @@ generador <- function(p_se,allee,N) {
   #imp<-imp[which(al>10 )]
   if(length(al)>10){
     plot(log10(al)~log10(I(1:length(al))), bty="l", pch=19, col="darkgreen", main="")
+    #plot(log10(al)~(I(1:length(al))), bty="l", pch=19, col="darkgreen", main="")
     
   y<-log10(al)
   z<-log10(imp)
   x<-log10(1:length(y))
+#  x<-(1:length(y))
 #  points(z~log10(I(1:length(al))), bty="l", pch=19, col="gold", main="", cex=.8)
   #ff0<-lm(y~x)
   ff1<-segmented(lm(y~x), seg.Z = ~x, npsi = 1)
@@ -101,13 +103,13 @@ library(ggplot2)
 library(ggpubr)
 library(segmented)
 library(ggforce)
-nRepeats = 10
+nRepeats = 500
 alleeCoefs = c(F,T)
 pob_condados = c(5.27,0.46)
 pob_paises = c(16.3,1.57)
 
 
-N=round(10^rnorm(nRepeats,pob_paises[1],pob_paises[2]))  #valores para paises
+N=round(10^rnorm(nRepeats,pob_condados[1],pob_condados[2]))  #valores para paises
 #N=round(10^rnorm(nRepeats,pob_condados[1],pob_condados[2]))  #valores para condados
 #subExpCoefs = c(0.8,1) #con y sin subexp
 subExpCoefs = 0.7
@@ -123,16 +125,17 @@ cuadrantes = cuadrantes %>% rowwise() %>%
   # mutate(modelo=list(generador(subexp,allee)),fit=list(coef(modelo,include.psi=T)))
   mutate(fit=list(generador(subexp,allee,N)))
 
-#cuadrantes = 
+cuadrantes = 
 cuadrantes %>% 
   unnest(fit)  %>% 
   group_by(n) %>% 
-  mutate(coef=c(paste0("coef.",1:5),paste0("t.",1:(n()-5)))) %>% View()
+  mutate(coef=c(paste0("coef.",1:5),paste0("t.",1:(n()-5)))) %>% #View()
   spread(key=coef,value  = fit) %>% 
   rowwise() %>% 
-  mutate(cociente = coef.3/coef.2,resta=coef.3 - coef.2,
-         angle = atan(abs((coef.3 - coef.2)/(1-coef.3*coef.2))),
-         coef.4 = coef.2+coef.3,
+  mutate(coef.4 = coef.2+coef.3,
+         cociente = coef.4/coef.2,
+         resta=coef.4 - coef.2,
+         angle = atan(abs((coef.4 - coef.2)/(1-coef.4*coef.2))),
          infec.Corte=ifelse(is.null(coef.5),NA,coef.1 + coef.4*coef.5))
 
 
@@ -175,18 +178,15 @@ colnames(cuadrantes)[c(8,10)]=c("initial.slope","slope.after.thresh")
 
 cuadrantes=cuadrantes %>%  filter(initial.slope>0)
 
+save(cuadrantes,file="simulados_allee_condados.RData")
 
-
-<<<<<<< HEAD
-=======
 ## -------------- PLOT CON CONVEX HULL -----------------
-xlims=c(-0.25,2)
-ylims= c(-1,15)
->>>>>>> alvaro
-plot_slopes = 
-cuadrantes %>% #mutate_at(c("coef.2","coef.4"),.funs = list("log10"=function(x) log10(1+x))) %>%
-  slice(sample(nrow(cuadrantes),1000)) %>% 
-ggscatterhist(x="initial.slope",y="slope.after.thresh",
+xlims=c(0,.5)
+ylims= c(-.01,3)
+plot_slopes =  # 
+cuadrantes %>% mutate_at(vars(contains("slope"),"cociente"),.funs = list("log10"=function(x) log10(1+x))) %>%
+ slice(sample(nrow(cuadrantes),1000)) %>% 
+ggscatterhist(x="initial.slope_log10",y="cociente_log10",
               color="allee.f",alpha=.3,size=3,
               margin.plot="boxplot",
               ggtheme=theme_bw(),
@@ -196,36 +196,25 @@ ggscatterhist(x="initial.slope",y="slope.after.thresh",
               ylim=ylims,
               xlim=xlims
 )
-plot_slopes$sp <-plot_slopes$sp+
-  geom_abline(slope=1,intercept = 0,linetype="dotted") +  
-  geom_mark_hull(concavity = 5,radius=.035,aes(fill=allee.f)) 
+plot_slopes$sp <-
+plot_slopes$sp+
+  geom_abline(slope=1,intercept = 0,linetype="dotted")# +  
+ # geom_mark_hull(concavity = 5,expand = -.00000001,aes(fill=allee.f)) 
+
+
+#plot_slopes$sp+
+ # geom_abline(slope=1,intercept = 0,linetype="dotted") +  
+#  geom_mark_hull(concavity = 5,expand = -.00000001,radius=.02,aes(fill=allee.f)) 
+
+
 
 plot_slopes$sp$labels$colour=""
 plot_slopes$sp$labels$fill=""
 plot_slopes$yplot=plot_slopes$yplot + ylim(ylims)
 plot_slopes$xplot=plot_slopes$xplot + ylim(xlims)
 plot_slopes
-print_plot_slopes = print(plot_slopes)
+  print_plot_slopes = print(plot_slopes)
 ggsave(print_plot_slopes,filename = "fig1_slopes.pdf",height = 4,width = 5)
-
-<<<<<<< HEAD
-cuadrantes_paises = cuadrantes
-save(cuadrantes_paises,file="cuadrantes_paises.RData")
-cuadrantes %>% mutate_at(c("coef.2","coef.3","cociente"),.funs = list("log"=function(x) log(1+x))) %>% 
-=======
-##############################
-
-cuadrantes %>% #mutate_at(c("coef.2","coef.3","cociente"),.funs = list("log"=function(x) log(1+x))) %>% 
-  
->>>>>>> alvaro
-  ggscatterhist(x="coef.2",y="angle",
-                color="allee.f",alpha=0.6,size=3,
-                margin.plot="boxplot",
-                ggtheme=theme_bw(),
-                xlab="initial slope",
-                ylab="angle between slopes",
-                palette = c("#ff9e47","#14b74b")
-  )
 
 cuadrantes %>% 
   ggscatterhist(x="infec.Corte",y="angle",
@@ -258,7 +247,7 @@ cuadrantes %>% ggplot(aes(y=log(cociente),col=interaction(allee,subexp.f),x=rest
   facet_wrap(~subexp.f)
 
 
-f###################################################################
+###################################################################
 ##### plot with/wihout Allee and subexponential
 
 plot.alle.migra.su.exp<-function(I0, bet, gam , p, t,  migration, size, I50, K, it){
