@@ -1,4 +1,4 @@
-###################################################################
+e##################################################################
 ##### Dynamic
 
 library(tidyr)
@@ -6,20 +6,23 @@ library(dplyr)
 library(ggplot2)
 library(ggpubr)
 library(segmented)
+library(gridExtra)
 
 # simulation parameters
 
 set.seed(2691)
-nRep <- 200
+nRep <- 1000
 minI <- 10
 maxI <- 1000
 p_se <- 0.8 # sin subexponencial
+I50 <- 10
+nPlotDyn <- 20
 #p_se=0.8 # subexponencial
 
 # SIR simulation with Allee effect
 SIR_Allee <- function(I0, betaMax=1.4, gammaMax=5, p, durSim,
                                   Allee = TRUE, migration = 1,
-                                  dispersion = 0.2, I50, Nsus = 100000){
+                                  dispersion = 0.2, I50 = 10, Nsus = 100000){
   S <- rep(NA, durSim)
   I <- rep(NA, durSim)
   R <- rep(NA, durSim)
@@ -42,7 +45,7 @@ SIR_Allee <- function(I0, betaMax=1.4, gammaMax=5, p, durSim,
     if(S[t-1] <= 0) {
       S[t-1] <- S[t] <- 0
     }
-    if (Allee == T) {
+    if (Allee == TRUE) {
       # adjust beta and gamma to infected levels if Allee
       beta <- betaMax * I[t-1] / (I[t-1] + I50)
       gamma <- gammaMax * I[t-1] / (I[t-1] + I50)
@@ -69,22 +72,24 @@ SIR_Allee <- function(I0, betaMax=1.4, gammaMax=5, p, durSim,
 }
 
 # generate repetitions of simulations
-SIR_generator <- function(p_se, allee, nRep) {
+SIR_generator <- function(p_se, allee, nRep, I50) {
   outputDf <- data.frame()
   for (al in allee) {
     rep <- 1
     while (rep <= nRep) {
       sim <- SIR_Allee(I0=10, betaMax=0.8, gammaMax=3 , p=p_se,
-                                   durSim=100,  migration=1, dispersion=0.2,
-                                   I50=10, Nsus=100000, Allee = al)
+                                   durSim=200,  migration=1, dispersion=0.2,
+                                   I50=I50, Nsus=100000, Allee = al)
       sim <- dplyr::mutate(sim, cumI = cumsum(newI),
                            cumImported = cumsum(Imported),
                            rep = rep, allee = al, p = p_se) %>%
         dplyr::filter(., cumI > minI & cumI < maxI)
-      sim$t <- c(1:nrow(sim))
-      if (nrow(sim) > 10) {
-        outputDf <- rbind(outputDf, sim)
-        rep <- rep + 1
+      if (nrow(sim) > 0) {
+        sim$t <- c(1:nrow(sim))
+        if (nrow(sim) > 10) {
+          outputDf <- rbind(outputDf, sim)
+          rep <- rep + 1
+        }
       }
     }
   }
@@ -95,31 +100,67 @@ SIR_generator <- function(p_se, allee, nRep) {
 fit_segmented <- function(cumI) {
     # fit segmented model  
     cumI <- log10(cumI)
+    #t <- log10(c(1:length(cumI)))
     t <- log10(c(1:length(cumI)))
-    fit <- segmented(lm(cumI ~ t), seg.Z = ~t, npsi =1)
+    fit <- segmented(lm(cumI ~ t), seg.Z = ~t, npsi = 1)
     cfs <- summary(fit)
     slopeVals <- cfs$coefficients[,1]
     if (length(slopeVals) <= 2) {
       slopeVals <- c(slopeVals[1:2], NA)
     } else {
       slopeVals <- slopeVals[1:3]
+      slopeVals[3] <- slopeVals[2] + slopeVals[3]
     }
     breakingPoint <- ifelse(is.null(cfs$psi), NA, cfs$psi[2])
     coefficients <- c(slopeVals, breakingPoint)
     # check if breaking point is significant by fitting lm
-    lmFit <- lm(cumI ~ t)
-    pValue <- davies.test(lmFit)$p.value
+    #lmFit <- lm(cumI ~ t)
+    #pValue <- davies.test(lmFit)$p.value
     # put together
-    coefficients <- as.list(c(coefficients, pValue))
+    coefficients <- as.list(coefficients)
     names(coefficients) <- c("intercept", "slopeI", "slopeF",
-                             "breakPoint", "pVal")
+                             "breakPoint")
   return(coefficients)
 }
+
+#fit_segmented <- function(cumI) {
+#    # fit segmented model  
+#    cumI <- log10(cumI)
+#    #t <- log10(c(1:length(cumI)))
+#    t <- c(1:length(cumI))
+#    fit <- segmented(lm(cumI ~ t), seg.Z = ~t, npsi = 1)
+#    cfs <- summary(fit)
+#    slopeVals <- slope(fit)
+#    slopeVals <- slopeVals$t[,1]
+#    if (length(slopeVals) <= 1) {
+#      slopeVals <- c(slopeVals, NA)
+#    }
+#    intercept <- coef(cfs)[1,1]
+#    breakingPoint <- ifelse(is.null(cfs$psi), NA, cfs$psi[2])
+#    coefficients <- c(intercept, slopeVals, breakingPoint)
+#    # check if breaking point is significant by fitting lm
+#    #lmFit <- lm(cumI ~ t)
+#    #pValue <- davies.test(lmFit)$p.value
+#    # put together
+#    #coefficients <- as.list(c(coefficients, pValue))
+#    coefficients <- as.list(coefficients)
+#    names(coefficients) <- c("intercept", "slopeI", "slopeF",
+#                             "breakPoint")
+#  return(coefficients)
+#}
 
 
 #### Run simulations and plot data ######
 allee <- c(TRUE, FALSE)
-simulations <- SIR_generator(p_se = p_se, allee = allee, nRep = nRep)
+simulations <- SIR_generator(p_se = p_se, allee = allee, nRep = nRep, I50 = I50)
+
+#cumI <- filter(simulations, allee == TRUE & rep == 1)[["cumI"]]
+#alSim <- filter(simulations, allee == TRUE)
+#length(unique(alSim$rep))
+#for (i in c(1:100)) {
+#  cumI <- filter(simulations, allee == FALSE & rep == i)[["cumI"]]
+#  k <- fit_segmented(cumI)
+#}
 
 fitCoefs <- group_by(simulations, allee, rep, p) %>%
   dplyr::summarise(., coefs = list(fit_segmented(cumI))) %>%
@@ -127,8 +168,8 @@ fitCoefs <- group_by(simulations, allee, rep, p) %>%
   tidyr::unnest_wider(., coefs) %>%
   dplyr::mutate(., cociente = slopeF/slopeI, resta = slopeF - slopeI,
                 angle = atan(abs((slopeF - slopeI)/(1-slopeF*slopeI))),
-                Ithreshold = intercept + slopeI*breakPoint) %>%
-  dplyr::filter(., cociente < 5000 & cociente > 0)
+                Ithreshold = intercept + slopeI*breakPoint)
+#  dplyr::filter(., cociente > 0)
 
 plotChange <- fitCoefs %>%
   dplyr::mutate(., allee = c("w/o Allee", "Allee")[as.integer(allee)+1]) %>%
@@ -140,40 +181,43 @@ plotChange <- fitCoefs %>%
                 legend.title = "",
                 margin.params = list(color = "allee"))
 
+
 sampleRepetitions <- sample(unique(simulations$rep), nPlotDyn)
 
 plotsDynAllee <- dplyr::filter(simulations, allee == TRUE & rep %in% sampleRepetitions) %>%
   ggplot(., aes(x = t, y = cumI)) +
   geom_point(color = "#b33018") +
   facet_wrap(~rep, scales = "free", ncol = 4) +
-  scale_x_continuous(trans = "log10", breaks = c(1, 5, 25)) +
+  scale_x_continuous(breaks = c(1, 5, 25), trans = "log10") +
   scale_y_continuous(limits = c(10, NA), trans = "log10") +
   xlab("time (days)") +
-  ylab("Cumulative infected") +
+  #ylab("Cumulative infected") +
+  ylab(element_blank()) +
   ggtitle("Allee") +
   theme_classic() +
   theme(strip.background = element_blank(), strip.text.x = element_blank(),
         plot.title = element_text(hjust = 0.5)) +
   NULL
   
-
 plotsDynNonAllee <- dplyr::filter(simulations, allee == FALSE & rep %in% sampleRepetitions) %>%
   ggplot(., aes(x = t, y = cumI)) +
   geom_point(color = "#14b74b") +
   facet_wrap(~rep, scales = "free", ncol = 4) +
-  scale_x_continuous(trans = "log10", breaks = c(1, 5, 25)) +
+  scale_x_continuous(breaks = c(1, 5, 25), trans = "log10") +
   scale_y_continuous(limits = c(10, NA), trans = "log10") +
   xlab("time (days)") +
-  ylab("Cumulative infected") +
+  #ylab("Cumulative infected") +
+  ylab(element_blank()) +
   ggtitle("W/o Allee") +
   theme_classic() +
   theme(strip.background = element_blank(), strip.text.x = element_blank(),
         plot.title = element_text(hjust = 0.5)) +
   NULL
   
-dynsPlots <- grid.arrange(plotsDynAllee, plotsDynNonAllee, ncol=2)
+dynsPlots <- grid.arrange(plotsDynAllee, plotsDynNonAllee, ncol=2,
+                          left = "Cumulative infected")
 
-ggsave("simDynamics.png", dynsPlots, width = 20, height = 12, units = "cm")
-ggsave("slopeAnalysis.png", width = 20, height = 12, units = "cm")
+ggsave("simDynamics.png", dynsPlots, width = 18, height = 11, units = "cm")
+ggsave("slopeAnalysis.png", width = 12, height = 12, units = "cm")
 
 
