@@ -3,32 +3,27 @@ bb_p=as_tibble(b)
 
 colnames(cuadrantes)[c(8,10)]=c("initial.slope","slope.after.thresh")
 
-<<<<<<< HEAD
 load('cuadrantes_paises.RData')
 bb_p$allee.f=factor("countries",levels = c(levels(cuadrantes_paises$allee.f),"countries"))
-=======
-bb_p$allee.f=factor("Countries",levels = c(levels(cuadrantes$allee.f),"Countries"))
 
-xlims=c(-0.25,2)
-ylims= c(-1,12)
+xlims=c(-0.25,1)
+ylims= c(-0,1)
 
->>>>>>> alvaro
+bb_p$cociente = bb_p$slope.after.thresh / bb_p$initial.slope
+
+
 plot_bbp_slopes=
-  bb_p %>% mutate_at(c("initial.slope","slope.after.thresh"),.funs = list("log10"=function(x) log10(1+x))) %>% 
-  ggscatterhist(x="initial.slope",y="slope.after.thresh",
+  bb_p %>% mutate_at(vars(contains("slope"),"cociente"),.funs = list("log10"=function(x) log10(1+x))) %>%
+  filter(cociente_log10<10) %>% 
+  ggscatterhist(x="initial.slope_log10",y="cociente_log10",
                 color="allee.f",
-<<<<<<< HEAD
                 #color="#000080",
                 alpha=.3,size=3,
-=======
-                #color="#202080",
-                alpha=.4,size=3,
->>>>>>> alvaro
                 margin.plot="boxplot",
                 ggtheme=theme_bw(),
                 xlab="initial slope",
                 ylab="slope after threshold",
-<<<<<<< HEAD
+
                 palette = "#000080",
                 #palette = c("#b33018","#14b74b","#000080"),
                 
