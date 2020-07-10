@@ -4,7 +4,7 @@ library(ggplot2)
 library(ggpubr)
 library(ggforce)
 bb=as_tibble(b)
-
+  
 bb$bajoUmbral = factor(bb$I.active<10)
 
 bb %>% 
@@ -88,10 +88,15 @@ bb$allee.f="U.S. counties"
 sim_bb = merge(cuadrantes[,c("Id","n","allee.f","initial.slope","slope.after.thresh","cociente")],bb,by=c("Id","allee.f","initial.slope","slope.after.thresh","cociente"),all=T)
 View(sim_bb)
 sim_bb$allee.f=relevel(sim_bb$allee.f,"U.S. counties")
+sim_bb$breakout = sim_bb$cociente>1
+sim_bb$breakout_allee.f = interaction(sim_bb$allee.f,sim_bb$breakout)
 
+#### ----- PLOT FIGURA 2 ------
 
 xlims=c(0,.35)
 ylims= c(-.01,2)
+
+
 
 plot_slopes=
   sim_bb %>% mutate_at(vars(contains("slope"),"cociente"),.funs = list("log10"=function(x) log10(1+x))) %>%
@@ -107,8 +112,8 @@ plot_slopes=
                 alpha=.4,
                 margin.plot="boxplot",
                 ggtheme=theme_bw(),
-                xlab="log10(1+initial slope)",
-                ylab="log10(1+slope after threshold/initial slope)",
+                xlab="log10(1+slope before breakout point)",
+                ylab="log10(1+slope after/slope before)",
                 palette = c("#000080","#b33018","#14b74b"),
                 ylim=ylims,
                 xlim=xlims
@@ -116,7 +121,8 @@ plot_slopes=
 
 plot_slopes$sp = plot_slopes$sp + scale_shape_manual(values=c(4,20,20)) +
   scale_size_manual(values=c(2,2,2))+scale_alpha_manual(values=c(.5,.3,.3)) +
-     geom_abline(slope=0,intercept = log10(2),linetype="dotted") #+  
+     geom_abline(slope=0,intercept = log10(2),linetype="dotted") +
+  annotate("text",x=0.03,y=log10(2)+0.1,label="equal slopes",size=2.5)
   
 # 
 # plot_slopes_solo_condados=
@@ -137,6 +143,34 @@ plot_slopes$sp = plot_slopes$sp + scale_shape_manual(values=c(4,20,20)) +
 #                 xlim=xlims
 #   )
 # 
+
+# plot con división en el cociente
+# 
+# plot_slopes_breakout=
+#   sim_bb %>% mutate_at(vars(contains("slope"),"cociente"),.funs = list("log10"=function(x) log10(1+x))) %>%
+#   #filtra a los que no tiene quiebre de pendientes positivo (ratio mayor a uno)
+#   # filter(cociente>1) %>% 
+#   ggscatterhist(x="initial.slope_log10",y="cociente_log10",
+#                 #color="bajoUmbral",
+#                 color="breakout_allee.f",
+#                 fill="allee.f",
+#                 shape="allee.f",
+#                 size="allee.f",
+#                 alpha="allee.f",
+#                 alpha=.4,
+#                 margin.plot="boxplot",
+#                 ggtheme=theme_bw(),
+#                 xlab="log10(1+initial slope)",
+#                 ylab="log10(1+slope after threshold/initial slope)",
+#                 palette = c("#000080","#b33018","#14b74b","#000080","#b33018","#14b74b"),
+#                 ylim=ylims,
+#                 xlim=xlims
+#   )
+# 
+# #plot_slopes_breakout$yplot = plot_slopes_breakout$yplot + ylim(ylims)
+# 
+# plot_slopes$yplot = plot_slopes_breakout$yplot
+
 # plot_slopes_con_allee=
 #   sim_bb %>% filter(allee.f=="with Allee effect") %>% 
 #   mutate_at(vars(contains("slope"),"cociente"),.funs = list("log10"=function(x) log10(1+x))) %>%
