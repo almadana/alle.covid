@@ -1,16 +1,15 @@
 ###### Plot the state space of Rt against N infected for different interventions
 
-
-# maxLinks - maximum number of close contacts that an
-# infected can achieve 
-# Infected - number of infected people in the population
-# pInfection - probability that a close contact results 
-# in an infectionof transmision through an effective
-# link.
-
-# pCall - probability that an attempt to reach a detected contact
-# (e.g. phone call) succeeds 
-# Npop is the total population size
+# Variables
+#
+# Npop: overall population
+# pCall: probability that an attempt to contact individual is succesful
+# pInfection: probability that a close contact is infected
+# maxLinks: average number of close contacts that non detected infected individuals make
+# NDailyCalls: daily number of contacting attempts that can be performed
+# maxDetected: maximum number of infected individuals that can be detected
+# infectedSubsample: plotting parameter to subsample infected for 2D rasters
+# propInfectedMax: plotting parameter to truncate 2D plots vertically
 
 library(tidyr)
 library(ggplot2)
@@ -20,7 +19,7 @@ library(gridExtra)
 library(cowplot)
 
 #########
-# Basic functions
+# Basic model functions
 ########
 
 # function of effective social links by day
@@ -30,8 +29,9 @@ links_fun <- function(maxLinks, day){
 
 # calculate the expected number of links of detected individuals
 expected_links <- function(maxLinks, pContact){
-  days <- c(1:20)
+  days <- c(0:20)
   pDay <- dgeom(days, pContact)
+  pDay[length(pDay)] <- 1 - sum(pDay[1:(length(pDay)-1)])
   links <- links_fun(maxLinks, days)
   expectedLinks <- sum(pDay * links)
   return(expectedLinks)
@@ -69,7 +69,7 @@ calculate_Rt_range <- function(maxDetected, maxLinks, Infected, pCall,
 # Functions that generate phase space
 #############################
 
-### Calculate Rt for a varying number of maximum contacts
+### Calculate Rt for a varying number of detection capacity
 Rt_detected <- function(maxLinks, maxDetected, pCall,  pInfection,
                      NDailyCalls, Npop, propInfectedMax = 1){
   infected <- c(1:round(Npop*propInfectedMax))
@@ -88,7 +88,7 @@ Rt_detected <- function(maxLinks, maxDetected, pCall,  pInfection,
 }
 
 
-### Calculate Rt for a varying number of maximum contacts
+### Calculate Rt for a varying number of daily calls
 Rt_calls <- function(maxLinks, maxDetected, pCall,  pInfection,
                      NDailyCalls, Npop, propInfectedMax = 1){
   infected <- c(1:round(Npop*propInfectedMax))
@@ -125,7 +125,7 @@ Rt_links <- function(maxLinks, maxDetected, pCall,  pInfection,
   return(RtSpace)
 }
 
-### Calculate Rt for a varying number of maximum contacts
+### Calculate Rt for a varying number of probability of infectious close contact
 Rt_pInfection <- function(maxLinks, maxDetected, pCall,  pInfection,
                      NDailyCalls, Npop, propInfectedMax = 1){
   infected <- c(1:round(Npop*propInfectedMax))
@@ -143,8 +143,6 @@ Rt_pInfection <- function(maxLinks, maxDetected, pCall,  pInfection,
   return(RtSpace)
 }
 
-
-
 # Enlongate and subsample matrix, and binarize, to draw raster in ggplot
 # varNames is the names of the columns
 # infectedSubsample indicates to keep 1 of every infectedSumsample infected values
@@ -158,7 +156,6 @@ enlongate_matrix <- function(inputMatrix, varNames, infectedSubsample) {
 }
 
 # plot 2D
-
 plot_phase_space <- function(inputDF, xName, reverse = FALSE){
   spacePlot <- ggplot(inputDF, aes(x = measure, y = Infected, fill = Rt_exp)) +
     geom_raster() +
@@ -167,12 +164,6 @@ plot_phase_space <- function(inputDF, xName, reverse = FALSE){
                                                          "Rt > 1 (Outbreak)")) +
     scale_x_continuous(name = xName, expand = c(0,0)) +
     scale_y_continuous(name = "Infected individuals", expand = c(0,0)) +
-  #  geom_segment(data = arrowDf,
-  #               aes(x = x, xend = x, y = y, yend = y+arrowLength, fill = "black"),
-  #            arrow = arrow(length = unit(0.5, "cm")))+
-    #annotate("text", x = 500, y = 750, label = "Growdth", size = 10) +
-    #annotate("text", x = 950, y = 200, label = "Containment", size = 10,
-    #         color = "white") +
     theme_bw()
   if (reverse) {
     spacePlot <- spacePlot +
@@ -186,24 +177,21 @@ plot_phase_space <- function(inputDF, xName, reverse = FALSE){
 # Make the space plots
 ###############################
 
-#general parameters
-nTreeDay <- c(1:700) * 0.2
-nTreeDay[nTreeDay < 1] <- 1
-pCall <- 0.2
+# general parameters
+pCall <- 0.15
 pInfection <- 0.2
 Npop <- 2000
-maxLinks <- 18
+maxLinks <- 14
 propInfectedMax <- 1
 NDailyCalls <- 800
 infectedSubsample <- 3
-maxDetected <- 900
+maxDetected <- 600
 
 # ranges for 
-nByTree <- 10
-maxDetected_Vec <- nByTree * nTreeDay
+maxDetected_Vec <- seq(0, 1000, 5)
 dailyCalls_Vec <- seq(20, 1500, 5)
 maxLinks_Vec <- seq(2, 30, 0.1)
-pInfection_Vec <- seq(0.1, 0.4, 0.002)
+pInfection_Vec <- seq(0.1, 0.3, 0.0015)
 
 # Space plot for maximum number of people that can be detected
 detectedLong <- Rt_detected(maxLinks = maxLinks, maxDetected = maxDetected_Vec,
@@ -267,6 +255,7 @@ plotGrid <- grid.arrange(legend,
                                  ncol=2, left = "Infected individuals"),
                      heights=c(1, 10))
 
+
 ggsave("phase_space.png", plotGrid, width = 15, height = 13, units = "cm")
 
 
@@ -275,12 +264,14 @@ ggsave("phase_space.png", plotGrid, width = 15, height = 13, units = "cm")
 # plot 1d phase space
 ########################
 
+# Rt as function of infected individuals without allee
 logistic_R <- function(R0, Npop) {
   I <- c(1:Npop)
   R <- R0 * (Npop - I)/Npop
   return(R)
 }
 
+# Rt as function of infected individuals with allee
 allee_R <- function(R0, Npop, I50) {
   I <- c(1:Npop)
   R <- R0 * (Npop - I)/Npop * I / (I + I50)
@@ -293,6 +284,8 @@ aR <- allee_R(3.5, 2000, 200)
 rdf <- data.frame(Infected = c(1:2000), lR = lR, aR = aR) %>%
   tidyr::pivot_longer(., cols = c("aR", "lR"), names_to = "model",
                       values_to = "R")
+
+# plotting code to detect and signal thresholds and comment the plots
 
 equilibriumPoints <- which(aR < 1)
 point1 <- which(diff(equilibriumPoints) == max(diff(equilibriumPoints)))
