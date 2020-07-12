@@ -1,11 +1,11 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2020.5.28)  10 JUL 2020 15:52
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2019.3.19)  11 JUL 2020 20:11
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
 **make_image1.tex
 (./make_image1.tex
 LaTeX2e <2017-04-15>
-Babel <3.18> and hyphenation patterns for 84 language(s) loaded.
+Babel <3.18> and hyphenation patterns for 10 language(s) loaded.
 (/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2014/09/29 v1.4h Standard LaTeX document class
 (/usr/share/texlive/texmf-dist/tex/latex/base/size10.clo
@@ -763,19 +763,19 @@ LaTeX Info: Redefining \] on input line 2818.
 (./make_image1.aux)
 \openout1 = `make_image1.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 33.
-LaTeX Font Info:    ... okay on input line 33.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 33.
-LaTeX Font Info:    ... okay on input line 33.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 33.
-LaTeX Font Info:    ... okay on input line 33.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 33.
-LaTeX Font Info:    ... okay on input line 33.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 33.
-LaTeX Font Info:    ... okay on input line 33.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 33.
-LaTeX Font Info:    ... okay on input line 33.
-LaTeX Font Info:    Try loading font information for OT1+phv on input line 33.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 42.
+LaTeX Font Info:    ... okay on input line 42.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 42.
+LaTeX Font Info:    ... okay on input line 42.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 42.
+LaTeX Font Info:    ... okay on input line 42.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 42.
+LaTeX Font Info:    ... okay on input line 42.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 42.
+LaTeX Font Info:    ... okay on input line 42.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 42.
+LaTeX Font Info:    ... okay on input line 42.
+LaTeX Font Info:    Try loading font information for OT1+phv on input line 42.
  (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ot1phv.fd
 File: ot1phv.fd 2001/06/04 scalable font definitions for OT1/phv.
 )
@@ -849,60 +849,60 @@ File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
 ABD: EveryShipout initializing macros
-<../allee1D.png, id=4, 426.6339pt x 255.8358pt>
-File: ../allee1D.png Graphic file (type png)
-<use ../allee1D.png>
-Package pdftex.def Info: ../allee1D.png  used on input line 40.
-(pdftex.def)             Requested size: 207.0021pt x 124.13095pt.
-<../phase_space.png, id=5, 426.6339pt x 369.7815pt>
-File: ../phase_space.png Graphic file (type png)
-<use ../phase_space.png>
-Package pdftex.def Info: ../phase_space.png  used on input line 50.
-(pdftex.def)             Requested size: 189.75105pt x 164.46478pt.
-LaTeX Font Info:    Font shape `OT1/phv/bx/n' in size <7> not available
-(Font)              Font shape `OT1/phv/b/n' tried instead on input line 53.
+<../allee1D.pdf, id=4, 426.59375pt x 255.95625pt>
+File: ../allee1D.pdf Graphic file (type pdf)
+<use ../allee1D.pdf>
+Package pdftex.def Info: ../allee1D.pdf  used on input line 50.
+(pdftex.def)             Requested size: 207.0021pt x 124.20502pt.
+Missing character: There is no ; in font nullfont!
+<../phase_space.pdf, id=5, 426.59375pt x 369.38pt>
+File: ../phase_space.pdf Graphic file (type pdf)
+<use ../phase_space.pdf>
+Package pdftex.def Info: ../phase_space.pdf  used on input line 64.
+(pdftex.def)             Requested size: 189.75105pt x 164.30312pt.
+LaTeX Font Info:    Font shape `OT1/phv/bx/n' in size <5> not available
+(Font)              Font shape `OT1/phv/b/n' tried instead on input line 72.
 <../simDynamics.png, id=6, 511.9125pt x 312.9291pt>
 File: ../simDynamics.png Graphic file (type png)
 <use ../simDynamics.png>
-Package pdftex.def Info: ../simDynamics.png  used on input line 58.
+Package pdftex.def Info: ../simDynamics.png  used on input line 79.
 (pdftex.def)             Requested size: 234.59747pt x 143.40479pt.
-<../slopeAnalysis.png, id=7, 341.3553pt x 341.3553pt>
-File: ../slopeAnalysis.png Graphic file (type png)
-<use ../slopeAnalysis.png>
-Package pdftex.def Info: ../slopeAnalysis.png  used on input line 60.
-(pdftex.def)             Requested size: 207.0021pt x 207.00758pt.
+<../scatter_condados.pdf, id=7, 361.35pt x 289.08pt>
+File: ../scatter_condados.pdf Graphic file (type pdf)
+<use ../scatter_condados.pdf>
+Package pdftex.def Info: ../scatter_condados.pdf  used on input line 81.
+(pdftex.def)             Requested size: 207.0021pt x 165.60216pt.
 
-Overfull \hbox (61.8973pt too wide) in paragraph at lines 63--64
+Overfull \hbox (64.47026pt too wide) in paragraph at lines 84--85
 [][] 
  []
 
 [1
 
-{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map} <../allee1D.png (PNG copy)>
- <../phase_space.png (PNG copy)> <../simDynamics.png (PNG copy)> <../slopeAnaly
-sis.png (PNG copy)>] (./make_image1.aux) ) 
+{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map} <../allee1D.pdf> <../phase_
+space.pdf> <../simDynamics.png (PNG copy)> <../scatter_condados.pdf>]
+(./make_image1.aux) ) 
 Here is how much of TeX's memory you used:
- 14406 strings out of 492982
- 290539 string characters out of 6134896
- 326126 words of memory out of 5000000
- 17709 multiletter control sequences out of 15000+600000
- 8093 words of font info for 21 fonts, out of 8000000 for 9000
- 1141 hyphenation exceptions out of 8191
- 55i,7n,73p,852b,626s stack positions out of 5000i,500n,10000p,200000b,80000s
-{/usr/share/texlive/texmf-dist/fonts/
-enc/dvips/base/8r.enc}</usr/share/texlive/texmf-dist/fonts/type1/public/amsfont
-s/cmextra/cmex7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/
-cm/cmmi5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi
-7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></
-usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/shar
-e/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/share/texli
-ve/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texlive/texm
-f-dist/fonts/type1/urw/helvetic/uhvb8a.pfb></usr/share/texlive/texmf-dist/fonts
-/type1/urw/helvetic/uhvr8a.pfb>
-Output written on make_image1.pdf (1 page, 902860 bytes).
+ 14415 strings out of 494788
+ 290683 string characters out of 6177222
+ 322765 words of memory out of 5000000
+ 17480 multiletter control sequences out of 15000+600000
+ 12767 words of font info for 26 fonts, out of 8000000 for 9000
+ 85 hyphenation exceptions out of 8191
+ 55i,6n,73p,852b,629s stack positions out of 5000i,500n,10000p,200000b,80000s
+{/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc
+}</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/
+share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/t
+exlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/share/texlive/t
+exmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texlive/texmf-dis
+t/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/share/texlive/texmf-dist/fonts
+/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/
+urw/helvetic/uhvb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/helvetic
+/uhvr8a.pfb>
+Output written on make_image1.pdf (1 page, 373172 bytes).
 PDF statistics:
- 52 PDF objects out of 1000 (max. 8388607)
- 35 compressed objects within 1 object stream
+ 78 PDF objects out of 1000 (max. 8388607)
+ 55 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  33 words of extra memory for PDF output out of 10000 (max. 10000000)
 
