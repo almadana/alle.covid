@@ -9,11 +9,11 @@ colnames(nn)[1]<-"Id"
 condados<-function(nn, us.counties){
   library("segmented")
   out<-NULL
-  par(mfrow=c(5,5), mar=c(2,2,2,0.5 ))
-  for (i in nn[,1]){
-    ii<-which(us.counties[,4]==i)
+  #par(mfrow=c(5,5), mar=c(2,2,2,0.5 ))
+  for (i in condPop[,"fips"]){
+    ii<-which(us_counties[,"fips"]==i)
     if(length(ii)>15){
-      x<-us.counties[ii,5]
+      x<-pull(us_counties[ii,5])
       X<-diff(x)
       id<-which(X==max(X))[1]
       if(length(14:id)>15 & min(x[14:id])>10 & max(x)>200) {    # 14 Days for having enough time for diseases dynamic (many counties have weeks with few cases)
@@ -25,7 +25,7 @@ condados<-function(nn, us.counties){
         ff0<-lm(Infect~ tt)
         aic<-AIC(ff0,ff1)[,2]
         wi<-exp(-0.5*(aic-min(aic)))/sum(exp(-0.5*(aic-min(aic))))
-
+  print("che")
         p.li<-coefficients(ff0)
  #   if(length(which(tt<fit$psi[2]))>10 & 
 #       as.vector(p.seg)[2]<as.vector(p.seg)[3] &
@@ -33,8 +33,8 @@ condados<-function(nn, us.counties){
 #       length(which(tt>fit$psi[2]))>10 &
 #       as.vector(p.seg)[3]>1.5
 #       ){
-        plot(Infect~tt ,bty="l", pch=19, col="navy", cex=.8, main=nn[which(nn[,1]==i),3])        
-        plot(ff1, add=T, col="red")
+        #plot(Infect~tt ,bty="l", pch=19, col="navy", cex=.8, main=nn[which(nn[,1]==i),3])        
+        #plot(ff1, add=T, col="red")
 #        }
         N.county<-nn[which(nn[,1]==i),4]                                          # Population of the country
         id.psi<-which(tt<fit$psi[2])                                              # The following lines estimate the number of active cases at the break point
@@ -52,11 +52,12 @@ condados<-function(nn, us.counties){
 }      
 save.image()
 ###########
-condados(nn = nn, us.counties = us.counties)->b
+condados(nn = condPop, us.counties = us_counties)->b
 
 head(b)
-b[,6]<-b[,6]+b[,5]
-#b<-cbind(b,10^(b[,4]+b[,5]*b[,7]))
+
+
+b<-cbind(b,10^(b[,4]+b[,5]*b[,7]))
 #b[,10]<-10^(b[,4]+b[,5]*b[,7])
 
 #quitar los que no ajustgaron bien

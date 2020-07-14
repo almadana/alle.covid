@@ -31,8 +31,8 @@ paises<-function(casos.world.264){
       #     length(which(tt>fit$psi[2]))>10 &
       #     as.vector(p.seg)[3]>1.1
       #  ){
-        plot(Infect~tt ,bty="l", pch=19, col="navy", cex=.8, main=casos.world.264[i,9]) 
-        plot(ff1, add=T, col="red")
+      #  plot(Infect~tt ,bty="l", pch=19, col="navy", cex=.8, main=casos.world.264[i,9]) 
+       # plot(ff1, add=T, col="red")
       #x  }
   #      bbreak<-which(x>fit$psi[2])[1]
         
