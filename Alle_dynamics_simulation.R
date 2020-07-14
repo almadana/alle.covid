@@ -188,7 +188,6 @@ sampleRepetitions <- sample(unique(simulations$rep), nPlotDyn)
 Nmax=100000
 
 simulations_fit = merge(simulations,fitCoefs,by=c("rep","allee"))
-simulations_fit %>%  group_by(allee,rep) %>% mutate(t_bp = ceiling(10^breakPoint)) %>% View()
 
 simulations_fit = simulations_fit %>% mutate(t_bp = ceiling(10^breakPoint),cumI_fit = ifelse(t<10^breakPoint, 10^(intercept + log10(t)*slopeI),10^(intercept - log10(t_bp)*slopeF +log10(t_bp-1)*slopeI +log10(t)*slopeF ))) 
 

@@ -3,7 +3,7 @@ library(dplyr)
 library(ggplot2)
 library(ggpubr)
 library(ggforce)
-bb=as_tibble(b)
+  bb=as_tibble(b)
   
 bb$bajoUmbral = factor(bb$I.active<10)
 
@@ -15,6 +15,7 @@ bb %>%
 
 bb %>% group_by(bajoUmbral) %>% summarize(m=mean(slope.after.thresh),mx=max(slope.after.thresh))
 
+bb$slope.after.thresh = bb$slope.after.thresh +bb$initial.slope
 bb$cociente = bb$slope.after.thresh / bb$initial.slope
 
 #datos simulados
@@ -45,7 +46,6 @@ bb$allee.f=factor("U.S. counties",levels = c("U.S. counties",levels(cuadrantes$a
 xlims=c(0,.5)
 ylims= c(0,2)
 plot_bb_slopes=
-
   bb %>% mutate_at(vars(contains("slope"),"cociente"),.funs = list("log10"=function(x) log10(1+x))) %>% 
     ggscatterhist(x="initial.slope_log10",y="cociente_log10",
                 color="allee.f",
@@ -108,7 +108,8 @@ plot_slopes=
                 fill="allee.f",
                 shape="allee.f",
                 size="allee.f",
-                alpha="allee.f",
+#                alpha="allee.f",
+                group="allee.f",
                 alpha=.4,
                 margin.plot="boxplot",
                 ggtheme=theme_bw(),
@@ -120,9 +121,10 @@ plot_slopes=
   )
 
 plot_slopes$sp = plot_slopes$sp + scale_shape_manual(values=c(4,20,20)) +
-  scale_size_manual(values=c(2,2,2))+scale_alpha_manual(values=c(.5,.3,.3)) +
+  scale_size_manual(values=c(2,2,2))+#scale_alpha_manual(values=c(.5,.3,.3)) +
      geom_abline(slope=0,intercept = log10(2),linetype="dotted") +
-  annotate("text",x=0.03,y=log10(2)+0.1,label="equal slopes",size=2.5)
+  annotate("text",x=0.03,y=log10(2)+0.1,label="equal slopes",size=3)+theme_classic() +
+  theme(legend.position = "top")
   
 # 
 # plot_slopes_solo_condados=
@@ -219,13 +221,29 @@ plot_slopes$sp = plot_slopes$sp + scale_shape_manual(values=c(4,20,20)) +
 # # geom_mark_hull(concavity = 5,expand = -.00000001,aes(fill=allee.f)) 
 
 
+
+#plot_slopes$sp + stat_density_2d(geom="polygon",aes(fill=allee.f,alpha=..level..),contour=T,bins=14)
+  
+
+plot_slopes$sp = cuadrantes %>% filter(cociente>1) %>%
+  ggplot(aes(fill=allee.f,x=log10(1+initial.slope),y=log10(1+cociente))) +
+  stat_density_2d(geom="polygon",aes(fill=allee.f,alpha=..level..),contour=T,bins=14) + 
+  geom_point(shape=4,data=(bb%>% filter(cociente>1)),alpha=1,col="#000080")+
+  scale_fill_manual(values = c("#000080","#b33018","#14b74b")) + theme_classic() +
+  theme(legend.position = "top") +  
+  geom_abline(slope=0,intercept = log10(2),linetype="dotted") +
+  annotate("text",x=0.03,y=log10(2)+0.1,label="equal slopes",size=3) +
+  xlim(xlims) + ylim(ylims) +
+  labs(x="log10(1+slope before breakout point)",y="log10(1+slope after/slope before)")
+
+
 plot_slopes$sp$labels$colour=""
 plot_slopes$sp$labels$fill=""
+plot_slopes$sp$labels$shape=""
+plot_slopes$sp$labels$size=""
+plot_slopes$sp$labels$alpha=""
 plot_slopes$yplot=plot_slopes$yplot + ylim(ylims)
 plot_slopes$xplot=plot_slopes$xplot + ylim(xlims)
-
-
-
 
 plot_slopes=print(plot_slopes)
 
@@ -237,3 +255,4 @@ plot_ch = cuadrantes %>%
   #xlim(xlims)+ ylim(ylims)+
   geom_point(size=2)
 plot_ch
+ 
