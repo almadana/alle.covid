@@ -24,21 +24,24 @@ county_data_fit =
   county_data_fit %>% mutate(t_bp = ceiling(10^breakPoint),cumI_fit = ifelse(t<10^breakPoint, 10^(intercept + log10(t)*initial.slope),10^(intercept - log10(t_bp)*slope.after.thresh +log10(t_bp-1)*initial.slope +log10(t)*slope.after.thresh ))) 
 
 #los condados con más y con menos quiebre:
-nExamples=5 # cuantos de cada
+nExamples=4 # cuantos de cada
 county_examples = 
   c(
-    county_data_fit %>% group_by(Id) %>% slice(1) %>% ungroup() %>% 
+    county_data_fit %>% filter(cociente>1)%>% group_by(Id) %>% slice(1) %>% ungroup() %>% 
       slice_max(cociente,n=nExamples) %>% pull(Id)
   ,
-  county_data_fit %>% group_by(Id) %>% slice(1) %>% ungroup() %>% 
+  county_data_fit %>% filter(cociente>1) %>% group_by(Id) %>% slice(1) %>% ungroup() %>% 
     slice_min(cociente,n=nExamples) %>% pull(Id)
   )
 
+county4 = county_examples[order(county_examples)]
+county4 = county4[-c(4,9)]
 
-plotsCondados <- dplyr::filter(county_data_fit, Id %in% county_examples) %>%
+
+plotsCondados <- dplyr::filter(county_data_fit, Id %in% county4) %>%
   ggplot(., aes(x = t, y = cumI)) +
   geom_point(color = "#000080") +
-  facet_wrap(~Id, scales = "free", ncol = 5) +
+  facet_wrap(~Id, scales = "free", ncol = 4) +
   scale_x_continuous(breaks = c(1, 5, 25), trans = "log10") +
   #scale_y_continuous(limits = c(10, NA), trans = "log10") +
   scale_y_continuous(trans = "log10") +
@@ -52,6 +55,8 @@ plotsCondados <- dplyr::filter(county_data_fit, Id %in% county_examples) %>%
   geom_line(aes(x=t,y=cumI_fit),color="blue")
 
 plotsCondados
+
+
 
 
 
@@ -96,12 +101,21 @@ country_examples =
 country_examples
 unique(country_data_fit$country[ country_data_fit$Id %in% country_examples])
 
+country4 = country_examples[order(country_examples)]
+country4 = country4[-c(4,8)]
+
+country_names=unique(country_data_fit$country[ country_data_fit$Id %in% country4])
+names(country_names)=country4
+country_labeller <- function(value) {return (country_names[value])}
+
 #
-plotsPaises <- dplyr::filter(country_data_fit, Id %in% country_examples) %>%
+plotsPaises <- dplyr::filter(country_data_fit, Id %in% country4) %>%
+#plotsPaises <- dplyr::filter(country_data_fit, Id %in% 108) %>%
+  
 #plotsPaises <- dplyr::filter(country_data_fit, Id %in% c(166,39)) %>%
   ggplot(., aes(x = t, y = cumI)) +
   geom_point(color = "#008080") +
-  facet_wrap(~Id, scales = "free", ncol = 5) +
+  facet_wrap(~country, scales = "free", ncol = 4) +
   scale_x_continuous(breaks = c(1, 5, 25), trans = "log10") +
   #scale_y_continuous(limits = c(10, NA), trans = "log10") +
   scale_y_continuous(trans = "log10") +
@@ -110,7 +124,8 @@ plotsPaises <- dplyr::filter(country_data_fit, Id %in% country_examples) %>%
   ylab(element_blank()) +
   ggtitle("Countries") +
   theme_classic() +
-  theme(strip.background = element_blank(), strip.text.x = element_blank(),
+    theme(strip.background = element_rect(linetype = 0),
+#    strip.text.x = element_blank(),
         plot.title = element_text(hjust = 0.5)) +
   geom_line(aes(x=t,y=cumI_fit),color="blue")
 
