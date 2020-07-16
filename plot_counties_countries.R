@@ -7,6 +7,8 @@ head(nn)
 
 bb$Id
 
+#abreviaciones de estados
+state_abbrev = read.csv('county_abbreviations.csv')
 
 county_data =   
   us_counties %>% group_by(fips) %>% 
@@ -15,16 +17,21 @@ county_data =
   mutate(t=t-13)
 colnames(county_data)[1] ="Id"
 
+#agregar nombre extendido de condado
+county_data = merge(county_data,state_abbrev,by="state",all.x = T)
+county_data$county.full = paste(county_data$county,county_data$code,sep=", ")
+
 #bb sale de plotCondados, que a su vez sale de segmented_condados (convierte el ajuste b en un tible bb, corrije segunda pendiente y agrega cociente para plotear)
 county_data_fit = merge(county_data,bb,by="Id")
 
-colnames(county_data_fit)[14]="breakPoint"
+
+colnames(county_data_fit)[17]="breakPoint"
 
 county_data_fit = 
   county_data_fit %>% mutate(t_bp = ceiling(10^breakPoint),cumI_fit = ifelse(t<10^breakPoint, 10^(intercept + log10(t)*initial.slope),10^(intercept - log10(t_bp)*slope.after.thresh +log10(t_bp-1)*initial.slope +log10(t)*slope.after.thresh ))) 
 
 #los condados con más y con menos quiebre:
-nExamples=4 # cuantos de cada
+nExamples=5 # cuantos de cada
 county_examples = 
   c(
     county_data_fit %>% filter(cociente>1)%>% group_by(Id) %>% slice(1) %>% ungroup() %>% 
@@ -41,7 +48,7 @@ county4 = county4[-c(4,9)]
 plotsCondados <- dplyr::filter(county_data_fit, Id %in% county4) %>%
   ggplot(., aes(x = t, y = cumI)) +
   geom_point(color = "#000080") +
-  facet_wrap(~Id, scales = "free", ncol = 4) +
+  facet_wrap(~county.full, scales = "free", ncol = 4) +
   scale_x_continuous(breaks = c(1, 5, 25), trans = "log10") +
   #scale_y_continuous(limits = c(10, NA), trans = "log10") +
   scale_y_continuous(trans = "log10") +
@@ -50,9 +57,10 @@ plotsCondados <- dplyr::filter(county_data_fit, Id %in% county4) %>%
   ylab(element_blank()) +
   ggtitle("U.S. counties") +
   theme_classic() +
-  theme(strip.background = element_blank(), strip.text.x = element_blank(),
+  theme(strip.background = element_rect(linetype = 0),
+        #strip.text.x = element_blank(),
         plot.title = element_text(hjust = 0.5)) +
-  geom_line(aes(x=t,y=cumI_fit),color="blue")
+  geom_line(aes(x=t,y=cumI_fit),color="sky blue")
 
 plotsCondados
 
@@ -104,14 +112,11 @@ unique(country_data_fit$country[ country_data_fit$Id %in% country_examples])
 country4 = country_examples[order(country_examples)]
 country4 = country4[-c(4,8)]
 
-country_names=unique(country_data_fit$country[ country_data_fit$Id %in% country4])
-names(country_names)=country4
-country_labeller <- function(value) {return (country_names[value])}
 
 #
 plotsPaises <- dplyr::filter(country_data_fit, Id %in% country4) %>%
 #plotsPaises <- dplyr::filter(country_data_fit, Id %in% 108) %>%
-  
+  mutate(country=ifelse(country %in% "Korea, South","South Korea",country)) %>% 
 #plotsPaises <- dplyr::filter(country_data_fit, Id %in% c(166,39)) %>%
   ggplot(., aes(x = t, y = cumI)) +
   geom_point(color = "#008080") +
@@ -122,7 +127,7 @@ plotsPaises <- dplyr::filter(country_data_fit, Id %in% country4) %>%
   xlab("time (days)") +
   #ylab("Cumulative infected") +
   ylab(element_blank()) +
-  ggtitle("Countries") +
+  ggtitle("Countries and regions") +
   theme_classic() +
     theme(strip.background = element_rect(linetype = 0),
 #    strip.text.x = element_blank(),
@@ -130,3 +135,7 @@ plotsPaises <- dplyr::filter(country_data_fit, Id %in% country4) %>%
   geom_line(aes(x=t,y=cumI_fit),color="blue")
 
 plotsPaises
+
+plot_condados_paises = ggarrange(plotsCondados,plotsPaises,nrow = 2)
+ggsave(plot_condados_paises,file="fig_2_trayectorias.pdf",width=5,height=4)
+ggsave(plot_condados_paises,file="fig_2_trayectorias.png",width=5,height=4)
