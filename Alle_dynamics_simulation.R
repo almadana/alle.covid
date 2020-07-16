@@ -185,16 +185,21 @@ plotChange <- fitCoefs %>%
 
 sampleRepetitions <- sample(unique(simulations$rep), nPlotDyn)
 
+sample4 = sampleRepetitions[order(sampleRepetitions)]
+sample4 = sample4[c(1,2,5,6)]
+
 Nmax=100000
 
 simulations_fit = merge(simulations,fitCoefs,by=c("rep","allee"))
 
 simulations_fit = simulations_fit %>% mutate(t_bp = ceiling(10^breakPoint),cumI_fit = ifelse(t<10^breakPoint, 10^(intercept + log10(t)*slopeI),10^(intercept - log10(t_bp)*slopeF +log10(t_bp-1)*slopeI +log10(t)*slopeF ))) 
 
-plotsDynAllee <- dplyr::filter(simulations_fit, allee == TRUE & rep %in% sampleRepetitions) %>%
+#plotsDynAllee <- dplyr::filter(simulations_fit, allee == TRUE & rep %in% sampleRepetitions) %>%
+plotsDynAllee <- dplyr::filter(simulations_fit, allee == TRUE & rep %in%sample4) %>%
   ggplot(., aes(x = t, y = cumI)) +
   geom_point(color = "#b33018") +
-  facet_wrap(~rep, scales = "free", ncol = 4) +
+#  facet_wrap(~rep, scales = "free", ncol = 4) +
+  facet_wrap(~rep, scales = "free", ncol = 2) +
   scale_x_continuous(breaks = c(1, 5, 25), trans = "log10") +
   scale_y_continuous(limits = c(10, NA), trans = "log10") +
   xlab("time (days)") +
@@ -204,14 +209,16 @@ plotsDynAllee <- dplyr::filter(simulations_fit, allee == TRUE & rep %in% sampleR
   theme_classic() +
   theme(strip.background = element_blank(), strip.text.x = element_blank(),
         plot.title = element_text(hjust = 0.5)) +
-  geom_line(aes(x=t,y=cumI_fit),color="red")
+  geom_line(aes(x=t,y=cumI_fit),color="pink")
 
 plotsDynAllee
   
-plotsDynNonAllee <- dplyr::filter(simulations_fit, allee == FALSE & rep %in% sampleRepetitions) %>%
+#plotsDynNonAllee <- dplyr::filter(simulations_fit, allee == FALSE & rep %in% sampleRepetitions) %>%
+plotsDynNonAllee <- dplyr::filter(simulations_fit, allee == FALSE & rep %in% sample4) %>%
   ggplot(., aes(x = t, y = cumI)) +
   geom_point(color = "#14b74b") +
-  facet_wrap(~rep, scales = "free", ncol = 4) +
+#  facet_wrap(~rep, scales = "free", ncol = 4) +
+  facet_wrap(~rep, scales = "free", ncol = 2) +
   scale_x_continuous(breaks = c(1, 5, 25), trans = "log10") +
   scale_y_continuous(limits = c(10, NA), trans = "log10") +
   xlab("time (days)") +
@@ -228,6 +235,6 @@ dynsPlots <- grid.arrange(plotsDynAllee, plotsDynNonAllee, ncol=2,
 
 ggsave("simDynamics.png", dynsPlots, width = 18, height = 11, units = "cm")
 ggsave("simDynamics.pdf", dynsPlots, width = 18, height = 11, units = "cm")
-ggsave("slopeAnalysis.png", width = 12, height = 12, units = "cm")
+#ggsave("slopeAnalysis.png", width = 12, height = 12, units = "cm")
 
 

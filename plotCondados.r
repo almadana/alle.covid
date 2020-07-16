@@ -3,7 +3,7 @@ library(dplyr)
 library(ggplot2)
 library(ggpubr)
 library(ggforce)
-  bb=as_tibble(b)
+bb=as_tibble(b)
   
 bb$bajoUmbral = factor(bb$I.active<10)
 
@@ -120,12 +120,12 @@ plot_slopes=
                 xlim=xlims
   )
 
-plot_slopes$sp = plot_slopes$sp + scale_shape_manual(values=c(4,20,20)) +
-  scale_size_manual(values=c(2,2,2))+#scale_alpha_manual(values=c(.5,.3,.3)) +
-     geom_abline(slope=0,intercept = log10(2),linetype="dotted") +
-  annotate("text",x=0.03,y=log10(2)+0.1,label="equal slopes",size=3)+theme_classic() +
-  theme(legend.position = "top")
-  
+# plot_slopes$sp = plot_slopes$sp + scale_shape_manual(values=c(4,20,20)) +
+#   scale_size_manual(values=c(2,2,2))+#scale_alpha_manual(values=c(.5,.3,.3)) +
+#      geom_abline(slope=0,intercept = log10(2),linetype="dotted") +
+#   annotate("text",x=0.03,y=log10(2)+0.1,label="equal slopes",size=3)+theme_classic() +
+#   theme(legend.position = "top")
+#   
 # 
 # plot_slopes_solo_condados=
 #   sim_bb %>% filter(allee.f=="U.S. counties") %>% 
@@ -226,9 +226,9 @@ plot_slopes$sp = plot_slopes$sp + scale_shape_manual(values=c(4,20,20)) +
   
 
 plot_slopes$sp = cuadrantes %>% filter(cociente>1) %>%
-  ggplot(aes(fill=allee.f,x=log10(1+initial.slope),y=log10(1+cociente))) +
+  ggplot(aes(group=allee.f,fill=allee.f,x=log10(1+initial.slope),y=log10(1+cociente))) +
   stat_density_2d(geom="polygon",aes(fill=allee.f,alpha=..level..),contour=T,bins=14) + 
-  geom_point(shape=4,data=(bb%>% filter(cociente>1)),alpha=1,col="#000080")+
+  geom_point(shape=20,data=(bb%>% filter(cociente>1)),alpha=1,col="#000080")+
   scale_fill_manual(values = c("#000080","#b33018","#14b74b")) + theme_classic() +
   theme(legend.position = "top") +  
   geom_abline(slope=0,intercept = log10(2),linetype="dotted") +
@@ -248,6 +248,8 @@ plot_slopes$xplot=plot_slopes$xplot + ylim(xlims)
 plot_slopes=print(plot_slopes)
 
 ggsave(plot_slopes,file="fig2_scatter_condados.pdf",width=5,height=4)
+ggsave(plot_slopes,file="fig2_scatter_condados.png",width=5,height=4)
+
 
 plot_ch = cuadrantes %>% 
   filter(cociente<10,cociente>log10(2)) %>% 
