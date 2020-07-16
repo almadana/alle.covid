@@ -15,6 +15,9 @@
 \usepackage{amsmath}
 \renewcommand{\familydefault}{\sfdefault}
 
+\usetikzlibrary{positioning}
+
+
 \newcommand\BWone{3.5}
 \newcommand\BWtwo{3}
 \newcommand\BWthree{3}
@@ -51,17 +54,28 @@
 \begin{adjustwidth}{-6em}{}
 
 \begin{tikzpicture}
-  \node[anchor=north ] at (\Hone-\BWone -\Loffset,\Vone+\BHone+1+\Loffset) {\Large a}; 
+  \node[anchor=north ] at (\Hone-\BWone -\Loffset,\Vone+\BHone+\Upperbox+\Loffset) {\Large a}; 
+  
+  
   \node[anchor=north] at (\Hone,\Vone-1.2) {\includegraphics[scale=.45]{../allee1D.pdf}};
+  
+\fill[boxcolor]  (\Hone-\BWone,\Vone-\BHone) rectangle (\Hone+\BWone,\Vone);
+  
    \draw[fill = boxcolor, draw=none]  (\Hone-\BWone,\Vone ) rectangle (\Hone+\BWone,\Vone+\BHone)
    
 
-       node[pos=0.5] {\scriptsize $R_e = P_{susceptible} \cdot b_{link} (L \cdot f_{q} + L_{max} \cdot f_{nq})$};
+       node[pos=0.5] (ecuacion){\scriptsize $R_e = P_{susceptible} \cdot b_{link} (L \cdot f_{q} + L_{max} \cdot f_{nq})$};
+\draw[->,red] (-6.5,1.1) -- (-6.5,\Vone-\BHone+.4) node[anchor=north west ,black ] [xshift=-.3cm] { \scalebox{.9}{ \scriptsize Social distancing} };
+
+\draw[->,red] (-7.2,1.1) -- (-7.8,\Vone-\BHone+.4) node[anchor=north,black ] {\scalebox{.9}{\scriptsize Contact tracing} };
+
+\draw[->,red] (-8,1.1) -- (-9.3,\Vone-\BHone+.4) node[anchor=north east,black,xshift=.3cm] {¸\scalebox{.9}{\scriptsize Personal behavior} };
+
+
 
        \fill[title1] (\Hone-\BWone,\Vone+\BHone) rectangle (\Hone+\BWone,\Vone+\BHone+\Upperbox)
        node[pos=0.5,align=center,font=\scriptsize, color=white] {Non-pharmaceutical interventions (NPIs) \\ induce an Allee effect on disease dynamics};
-;
-\node[anchor=north ] at (\Htwo-\BWone -\Loffset,\Vone+\BHone+1+\Loffset) {\Large b}; 
+\node[anchor=north ] at (\Htwo-\BWone -\Loffset,\Vone+\BHone+\Upperbox+\Loffset) {\Large b}; 
 
        
   \fill[title2]  (\Htwo-\BWone,\Vone+\BHone) rectangle (\Htwo+\BWone,\Vone+\BHone+\Upperbox)
@@ -77,7 +91,7 @@
 
   
   \draw[fill=boxcolor,draw=none]  (\Hthree-\BWone,\Vone-\BHone) rectangle (\Hthree+\BWone,\Vone+\BHone)
-    node[anchor=north east ,pos=1,align=left,font=\tiny] {\scalebox{0.6} \bf Simulated SIR Dynamics \\
+    node[anchor=north east,pos=1,align=left,font=\tiny] [xshift=-.6cm] {\scalebox{0.6} \bf Simulated SIR Dynamics \\
     \begin{tabular}{l r}
        \scalebox{0.6} { $S(t+1) = S(t) - I_{new}(d)$ } & \scalebox{0.6} {$I_{new}(t)\sim {\rm Poisson}(\lambda) $ }\\
            \scalebox{0.6} {$I(t+1) = I(t) + I_{new}(t) - \frac{I(t)}{\gamma(I(t))} + I_{imp}(t) $  }  &  \scalebox{0.6}{ $\lambda= \frac{\beta(I(t)) I(t)^p S(t)}{N} $}\\
