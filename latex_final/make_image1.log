@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2019.3.19)  15 JUL 2020 23:26
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2019.3.19)  16 JUL 2020 01:06
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -786,23 +786,27 @@ LaTeX Font Info:    Redeclaring font encoding OMS on input line 713.
 LaTeX Info: Redefining \[ on input line 2817.
 LaTeX Info: Redefining \] on input line 2818.
 )
-(./make_image1.aux)
+(/usr/share/texlive/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tik
+zlibrarypositioning.code.tex
+File: tikzlibrarypositioning.code.tex 2008/10/06 v3.0.1a (rcs-revision 1.7)
+) (./make_image1.aux)
 \openout1 = `make_image1.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 47.
-LaTeX Font Info:    ... okay on input line 47.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 47.
-LaTeX Font Info:    ... okay on input line 47.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 47.
-LaTeX Font Info:    ... okay on input line 47.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 47.
-LaTeX Font Info:    ... okay on input line 47.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 47.
-LaTeX Font Info:    ... okay on input line 47.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 47.
-LaTeX Font Info:    ... okay on input line 47.
-LaTeX Font Info:    Try loading font information for OT1+phv on input line 47.
- (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ot1phv.fd
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 50.
+LaTeX Font Info:    ... okay on input line 50.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 50.
+LaTeX Font Info:    ... okay on input line 50.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 50.
+LaTeX Font Info:    ... okay on input line 50.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 50.
+LaTeX Font Info:    ... okay on input line 50.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 50.
+LaTeX Font Info:    ... okay on input line 50.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 50.
+LaTeX Font Info:    ... okay on input line 50.
+LaTeX Font Info:    Try loading font information for OT1+phv on input line 50.
+
+(/usr/share/texlive/texmf-dist/tex/latex/psnfss/ot1phv.fd
 File: ot1phv.fd 2001/06/04 scalable font definitions for OT1/phv.
 )
 *geometry* driver: auto-detecting
@@ -908,33 +912,32 @@ ABD: EveryShipout initializing macros
 <../allee1D.pdf, id=4, 426.59375pt x 255.95625pt>
 File: ../allee1D.pdf Graphic file (type pdf)
 <use ../allee1D.pdf>
-Package pdftex.def Info: ../allee1D.pdf  used on input line 55.
+Package pdftex.def Info: ../allee1D.pdf  used on input line 60.
 (pdftex.def)             Requested size: 191.96541pt x 115.17923pt.
-Missing character: There is no ; in font nullfont!
 <../phase_space.pdf, id=5, 426.59375pt x 369.38pt>
 File: ../phase_space.pdf Graphic file (type pdf)
 <use ../phase_space.pdf>
-Package pdftex.def Info: ../phase_space.pdf  used on input line 70.
+Package pdftex.def Info: ../phase_space.pdf  used on input line 84.
 (pdftex.def)             Requested size: 191.96541pt x 166.21945pt.
 LaTeX Font Info:    Font shape `OT1/phv/bx/n' in size <5> not available
-(Font)              Font shape `OT1/phv/b/n' tried instead on input line 80.
+(Font)              Font shape `OT1/phv/b/n' tried instead on input line 94.
 <../simDynamics.png, id=6, 511.9125pt x 312.9291pt>
 File: ../simDynamics.png Graphic file (type png)
 <use ../simDynamics.png>
-Package pdftex.def Info: ../simDynamics.png  used on input line 90.
+Package pdftex.def Info: ../simDynamics.png  used on input line 104.
 (pdftex.def)             Requested size: 204.76137pt x 125.1694pt.
  [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map} <../allee1D.pdf> <../phase_
 space.pdf> <../simDynamics.png (PNG copy)>] (./make_image1.aux) ) 
 Here is how much of TeX's memory you used:
- 14897 strings out of 494788
- 297737 string characters out of 6177222
- 337504 words of memory out of 5000000
- 17953 multiletter control sequences out of 15000+600000
+ 14967 strings out of 494788
+ 299474 string characters out of 6177222
+ 339531 words of memory out of 5000000
+ 18020 multiletter control sequences out of 15000+600000
  11670 words of font info for 25 fonts, out of 8000000 for 9000
  85 hyphenation exceptions out of 8191
- 55i,12n,73p,852b,705s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 55i,12n,73p,852b,704s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/te
 xlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/share/texlive/texmf-dist/fon
 ts/type1/public/amsfonts/cm/cmmi5.pfb></usr/share/texlive/texmf-dist/fonts/type
@@ -943,7 +946,7 @@ c/amsfonts/cm/cmr5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfon
 ts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cm
 sy5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb
 ></usr/share/texlive/texmf-dist/fonts/type1/urw/helvetic/uhvr8a.pfb>
-Output written on make_image1.pdf (1 page, 287383 bytes).
+Output written on make_image1.pdf (1 page, 288148 bytes).
 PDF statistics:
  60 PDF objects out of 1000 (max. 8388607)
  40 compressed objects within 1 object stream
