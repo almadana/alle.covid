@@ -43,7 +43,9 @@ county_examples =
 
 county4 = county_examples[order(county_examples)]
 county4 = county4[-c(4,9)]
-
+county4[1] = 12127
+county4[4] = 48355
+county4[5] = 25027
 
 plotsCondados <- dplyr::filter(county_data_fit, Id %in% county4) %>%
   ggplot(., aes(x = t, y = cumI)) +
@@ -59,7 +61,8 @@ plotsCondados <- dplyr::filter(county_data_fit, Id %in% county4) %>%
   theme_classic() +
   theme(strip.background = element_rect(linetype = 0),
         #strip.text.x = element_blank(),
-        plot.title = element_text(hjust = 0.5)) +
+        plot.title = element_text(hjust = 0.5),
+        text = element_text(size=10)) +
   geom_line(aes(x=t,y=cumI_fit),color="sky blue")
 
 plotsCondados
@@ -69,7 +72,7 @@ plotsCondados
 
 
 country_data  = 
-cases.world %>% mutate(Id=1:n())  %>% group_by(UID) %>%
+  cases.world %>% mutate(Id=1:n())  %>% group_by(UID) %>%
   select(-X) %>% 
   select(Id,Province_State,Country_Region,starts_with("X")) %>% 
   pivot_longer(starts_with("X")) %>%
@@ -119,7 +122,7 @@ plotsPaises <- dplyr::filter(country_data_fit, Id %in% country4) %>%
   mutate(country=ifelse(country %in% "Korea, South","South Korea",country)) %>% 
 #plotsPaises <- dplyr::filter(country_data_fit, Id %in% c(166,39)) %>%
   ggplot(., aes(x = t, y = cumI)) +
-  geom_point(color = "#008080") +
+  geom_point(color = "#4020ab") +
   facet_wrap(~country, scales = "free", ncol = 4) +
   scale_x_continuous(breaks = c(1, 5, 25), trans = "log10") +
   #scale_y_continuous(limits = c(10, NA), trans = "log10") +
@@ -131,11 +134,12 @@ plotsPaises <- dplyr::filter(country_data_fit, Id %in% country4) %>%
   theme_classic() +
     theme(strip.background = element_rect(linetype = 0),
 #    strip.text.x = element_blank(),
-        plot.title = element_text(hjust = 0.5)) +
-  geom_line(aes(x=t,y=cumI_fit),color="blue")
+        plot.title = element_text(hjust = 0.5),
+    text = element_text(size=10)) +
+  geom_line(aes(x=t,y=cumI_fit),color="sky blue")
 
 plotsPaises
 
 plot_condados_paises = ggarrange(plotsCondados,plotsPaises,nrow = 2)
-ggsave(plot_condados_paises,file="fig_2_trayectorias.pdf",width=5,height=4)
-ggsave(plot_condados_paises,file="fig_2_trayectorias.png",width=5,height=4)
+ggsave(plot_condados_paises,file="fig_2_trayectorias.pdf",width=5.5,height=4)
+ggsave(plot_condados_paises,file="fig_2_trayectorias.png",width=5.5,height=4)
