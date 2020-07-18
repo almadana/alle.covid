@@ -6,3 +6,4 @@ fig2 = ggarrange(plotsCondados + labs(tag="a"),
 fig2
 
 ggsave(fig2,file="fig2.pdf",width=14,height=9)
+ggsave(fig2,file="fig2.png",width=14,height=9)

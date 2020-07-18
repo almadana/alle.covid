@@ -55,7 +55,7 @@ generador <- function(p_se,allee,N) {
   #al<-al[which(al>10 )]
   #imp<-imp[which(al>10 )]
   if(length(al)>10){
-    plot(log10(al)~log10(I(1:length(al))), bty="l", pch=19, col="darkgreen", main="")
+#    plot(log10(al)~log10(I(1:length(al))), bty="l", pch=19, col="darkgreen", main="")
     #plot(log10(al)~(I(1:length(al))), bty="l", pch=19, col="darkgreen", main="")
     
   y<-log10(al)
@@ -68,7 +68,7 @@ generador <- function(p_se,allee,N) {
   #aic<-AIC(ff0,ffp, ff1)[,2]
   #wi<-exp(-0.5*(aic-min(aic)))/sum(exp(-0.5*(aic-min(aic))))
   cfs = summary(ff1)
-  plot(ff1, add=T, col="red")
+  #plot(ff1, add=T, col="red")
   
   return(c(cfs$coefficients[,1],ifelse(is.null(cfs$psi),NA,cfs$psi[2]),al))
 #  plot(ff1, add=T, col="red")
@@ -103,16 +103,16 @@ library(ggplot2)
 library(ggpubr)
 library(segmented)
 library(ggforce)
-nRepeats = 500
+nRepeats = 1000
 alleeCoefs = c(F,T)
 pob_condados = c(5.27,0.46)
 pob_paises = c(16.3,1.57)
 
 
-N=round(10^rnorm(nRepeats,pob_condados[1],pob_condados[2]))  #valores para paises
+N=round(10^rnorm(nRepeats,pob_paises[1],pob_paises[2]))  #valores para paises
 #N=round(10^rnorm(nRepeats,pob_condados[1],pob_condados[2]))  #valores para condados
 #subExpCoefs = c(0.8,1) #con y sin subexp
-subExpCoefs = 0.7
+subExpCoefs = 0.8
 nRows=length(alleeCoefs)*length(subExpCoefs)
 
 cuadrantes = tibble(n=seq(1,nRows*nRepeats),

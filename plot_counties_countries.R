@@ -114,7 +114,7 @@ unique(country_data_fit$country[ country_data_fit$Id %in% country_examples])
 
 country4 = country_examples[order(country_examples)]
 country4 = country4[-c(4,8)]
-
+country4[3]=178
 
 #
 plotsPaises <- dplyr::filter(country_data_fit, Id %in% country4) %>%

@@ -245,7 +245,7 @@ plot_slopes$sp =
   scale_fill_manual(values = c("#FFFFFF","#b33018","#14b74b")) + theme_classic() +
   scale_color_manual(values=c("#000080","#b33018","#14b74b"))+
   theme(legend.position = "top") +  
-  geom_abline(slope=0,intercept = log10(2),linetype="dotted") +
+  geom_abline(slope=0,intercept = log10(2)-.1,linetype="dotted") +
   geom_text_repel(data=sim_bb,aes(label=label),size=3)+
   annotate("text",x=0.03,y=log10(2)+0.1,label="equal slopes",size=3) +
   xlim(xlims) + ylim(ylims) +
@@ -261,7 +261,7 @@ plot_slopes$yplot=plot_slopes$yplot + ylim(ylims)
 plot_slopes$xplot=plot_slopes$xplot + ylim(xlims)
 plot_slopes$sp = plot_slopes$sp + guides(alpha="none",shape="none",colour="none") 
 
-plot_slopes=print(plot_slopes$sp)
+plot_slopes=print(plot_slopes)
 
 ggsave(plot_slopes,file="fig2_scatter_condados.pdf",width=5,height=4)
 ggsave(plot_slopes,file="fig2_scatter_condados.png",width=5,height=4)
