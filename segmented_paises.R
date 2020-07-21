@@ -45,50 +45,50 @@ paises<-function(casos.world.264){
 }      
 save.image()
 ###########
-paises(casos.world.264)->b
-head(b)
-dim(b)
-b<-cbind(b,10^(b[,4]+b[,5]*b[,7]))
-#b[,10]<-10^(b[,4]+b[,5]*b[,7])
+paises(casos.world)->b_p
+head(b_p)
+dim(b_p)
+b_p<-cbind(b_p,10^(b_p[,4]+b_p[,5]*b_p[,7]))
+#b_p[,10]<-10^(b_p[,4]+b_p[,5]*b_p[,7])
 par(mfrow=c(2,3), mar=c(4,4,2,2))
-hist(b[,5], col="navy", border = "gray", main="Initial Slope", xlab="Slope")
+hist(b_p[,5], col="navy", border = "gray", main="Initial Slope", xlab="Slope")
 text(1.25, 20, "b<1 potential growth rate\nlower than lineal increase")
 
-hist((b[,6]+b[,5]), col="navy", border = "gray", main="Slope After Threshold", xlab="Slope")
+hist((b[,6]+b_p[,5]), col="navy", border = "gray", main="Slope After Threshold", xlab="Slope")
 text(6, 25, "b>1 potential growth rate\nhigher than lineal")
 
-hist(log10(b[,10]), col="navy", border = "gray", main="Infection Threshold ", xlab="log10(Infected)", breaks=20)
+hist(log10(b_p[,10]), col="navy", border = "gray", main="Infection Threshold ", xlab="log10(Infected)", breaks=20)
 
-#hist((b[,10]/b[,2]*100), col="navy",
+#hist((b_p[,10]/b_p[,2]*100), col="navy",
 #     border = "gray", main="Infection Number ",
 #     xlab="log10(Infected)", breaks=100, xlim=c(0,.5))
 
-plot(b[,5]~ log10(b[,2]), bty="l", pch=19, col="navy", xlab="Log10(Population)", ylab="Initial Slope")
-abline(lm(b[,5]~ log10(b[,2])), col="red", lwd=2)
-summary(lm(b[,5]~ log10(b[,2])), col="red", lwd=2)
+plot(b_p[,5]~ log10(b_p[,2]), bty="l", pch=19, col="navy", xlab="Log10(Population)", ylab="Initial Slope")
+abline(lm(b_p[,5]~ log10(b_p[,2])), col="red", lwd=2)
+summary(lm(b_p[,5]~ log10(b_p[,2])), col="red", lwd=2)
 text(4.5,1.25,"b0~N^0.23\np:1.09e-07")
-points(b[,5]~ log10(b[,2]),  col="gray")
+points(b_p[,5]~ log10(b_p[,2]),  col="gray")
 
-plot(b[,6]~ log10(b[,2]), bty="l", pch=19, col="navy", xlab="Log10(Population)", ylab="Slope after threshold")
-#abline(lm(b[,6]~ log10(b[,2])), col="red", lwd=2)
-summary(lm(b[,6]~ log10(b[,2])), col="red", lwd=2)
+plot(b_p[,6]~ log10(b_p[,2]), bty="l", pch=19, col="navy", xlab="Log10(Population)", ylab="Slope after threshold")
+#abline(lm(b_p[,6]~ log10(b_p[,2])), col="red", lwd=2)
+summary(lm(b_p[,6]~ log10(b_p[,2])), col="red", lwd=2)
 #text(4.5,1.25,"b0~N^0.23\np:1.09e-07")
-points(b[,6]~ log10(b[,2]),  col="gray")
+points(b_p[,6]~ log10(b_p[,2]),  col="gray")
 
-plot(log10(b[,10])~ log10(b[,2]), bty="l", pch=19, col="navy", xlab="Log10(Population)", ylab="Log(Infection threshold)")
-abline(lm(log10(b[,10])~ log10(b[,2])), col="red", lwd=2)
-summary(lm(log10(b[,10])~ log10(b[,2])), col="red", lwd=2)
+plot(log10(b_p[,10])~ log10(b_p[,2]), bty="l", pch=19, col="navy", xlab="Log10(Population)", ylab="Log(Infection threshold)")
+abline(lm(log10(b_p[,10])~ log10(b_p[,2])), col="red", lwd=2)
+summary(lm(log10(b_p[,10])~ log10(b_p[,2])), col="red", lwd=2)
 text(4.5,3,"Inf.thres.~N^0.42\np:7.8e-12\nr-sqrt:0.19")
-points(log10(b[,10])~ log10(b[,2]),  col="gray")
+points(log10(b_p[,10])~ log10(b_p[,2]),  col="gray")
 
 ####
 
 #################
 #paises
 
-colnames(b)
-hist((b[,8]), col="navy", border = "gray", main="Infection Threshold ", xlab="log10(Infected)", breaks=20)
-hist((b[,9]), col="navy", border = "gray", main="Infection Threshold ", xlab="log10(Infected)", breaks=20)
+colnames(b_p)
+hist((b_p[,8]), col="navy", border = "gray", main="Infection Threshold ", xlab="log10(Infected)", breaks=20)
+hist((b_p[,9]), col="navy", border = "gray", main="Infection Threshold ", xlab="log10(Infected)", breaks=20)
 
 
 
