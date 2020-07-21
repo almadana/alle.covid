@@ -66,10 +66,7 @@ b=  b[!(is.na(b[,8])),]
 par(mfrow=c(2,3), mar=c(4,4,2,2))
 hist(b[,5], col="navy", border = "gray", main="Initial Slope", xlab="Slope")
 
-umbralBajo = b[,10]<10
-
-hist(b[umbralBajo,6], col="red", border = "gray", main="Slope after  threshold", xlab="Slope",probability = T)
-hist(b[!umbralBajo,6], col="navy", border = "gray", main="Slope after  threshold", xlab="Slope",add=T,probability = T)
+hist(b[,6], col="navy", border = "gray", main="Slope after threshold", xlab="Slope")
 
 
 hist(log10(b[,10]), col="navy", border = "gray", main="Active infected at breakpoint", xlab="Log10(Active Cases)")
