@@ -1,6 +1,7 @@
 #levanta datos para condados y países
 require(stringi)
 require(lubridate)
+require(dplyr)
 condPop = read.csv('counties.11.7.csv') %>% select(FIPS,Admin2,Province_State,Population)
 colnames(condPop)[1:3]=c("fips","county","state")
 
