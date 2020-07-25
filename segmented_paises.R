@@ -54,38 +54,22 @@ colnames(b_p)[11]="I.total"
 b_p=b_p[-40,]
 #
 #b_p[,10]<-10^(b_p[,4]+b_p[,5]*b_p[,7])
-par(mfrow=c(2,3), mar=c(4,4,2,2))
-hist(b_p[,5], col="#4020ab", border = "gray", main="Initial Slope", xlab="Slope")
-#text(1.25, 20, "b<1 potential growth rate\nlower than lineal increase")
 
-hist((b_p[,6]+b_p[,5]), col="#4020ab", border = "gray", main="Slope after threshold", xlab="Slope",10)
-#text(6, 25, "b>1 potential growth rate\nhigher than lineal")
 
-hist(log10(b_p[,10]), col="#4020ab", border = "gray", main="Active infected at breakpoint ", xlab="Log10(Active Cases)", breaks=20)
+pdf(file="S4.pdf",width = 8,height = 4)
+source("plotS4.r")
+dev.off()
 
-#hist((b_p[,10]/b_p[,2]*100), col="#4020ab",
-#     border = "gray", main="Infection Number ",
-#     xlab="log10(Infected)", breaks=100, xlim=c(0,.5))
+svg(file="S4.svg",width = 8,height = 4)
+source("plotS4.r")
+dev.off()
 
-plot(b_p[,5]~ log10(b_p[,2]), bty="l", pch=19, col="#4020ab", xlab="Log10(Population)", ylab="Initial Slope")
-abline(lm(b_p[,5]~ log10(b_p[,2])), col="red", lwd=2)
-summary(lm(b_p[,5]~ log10(b_p[,2])), col="red", lwd=2)
-#text(4.5,1.25,"b0~N^0.23\np:1.09e-07")
-points(b_p[,5]~ log10(b_p[,2]),  col="gray")
 
-plot(b_p[,6]~ log10(b_p[,2]), bty="l", pch=19, col="#4020ab", xlab="Log10(Population)", ylab="Slope after threshold")
 
-#abline(lm(b_p[,6]~ log10(b_p[,2])), col="red", lwd=2)
-summary(lm(b_p[,6]~ log10(b_p[,2])), col="red", lwd=2)
-#text(4.5,1.25,"b0~N^0.23\np:1.09e-07")
-points(b_p[,6]~ log10(b_p[,2]),  col="gray")
+png(file="S4.png",width = 1200,height = 600)
+source("plotS4.r")
+dev.off()
 
-plot(log10(b_p[,10])~ log10(b_p[,2]), bty="l", pch=19, col="#4020ab", xlab="Log10(Population)", ylab="Log(Infection threshold)")
-abline(lm(log10(b_p[,10])~ log10(b_p[,2])), col="red", lwd=2)
-summary(lm(log10(b_p[,10])~ log10(b_p[,2])), col="red", lwd=2)
-#text(4.5,3,"Inf.thres.~N^0.42\np:7.8e-12\nr-sqrt:0.19")
-
-points(log10(b_p[,10])~ log10(b_p[,2]),  col="gray")
 
 ####
 

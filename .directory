@@ -1,6 +1,7 @@
 [Dolphin]
-SortRole=size
-Timestamp=2020,7,21,2,17,11
+SortOrder=1
+SortRole=modificationtime
+Timestamp=2020,7,22,18,55,53
 Version=4
 ViewMode=1
 VisibleRoles=Details_text,Details_size,Details_modificationtime,Details_type,CustomizedDetails
