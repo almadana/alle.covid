@@ -1,7 +1,9 @@
-fig2 = ggarrange(plotsCondados + labs(tag="a"),
-          plot_slopes + labs(tag="b"), 
-          plotsPaises+labs(tag="c"),
-          plot_slopes_p + labs(tag="d"))
+fig2 = ggarrange(plotsCondados ,
+          plot_slopes , 
+          plotsPaises,
+          plot_slopes_p ,
+          widths = c(4,3),
+          labels = "auto")
 
 fig2
 

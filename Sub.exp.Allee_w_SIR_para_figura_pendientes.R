@@ -106,16 +106,16 @@ library(ggplot2)
 library(ggpubr)
 library(segmented)
 library(ggforce)
-nRepeats = 300
+nRepeats = 1000
 alleeCoefs = c(F,T)
 pob_condados = c(4.49,0.68)
 pob_paises = c(6.66,1.07)
 
 
-N=round(10^rnorm(nRepeats,pob_paises[1],pob_paises[2]))  #valores para paises
-#N=round(10^rnorm(nRepeats,pob_condados[1],pob_condados[2]))  #valores para condados
+#N=round(10^rnorm(nRepeats,pob_paises[1],pob_paises[2]))  #valores para paises
+N=round(10^rnorm(nRepeats,pob_condados[1],pob_condados[2]))  #valores para condados
 #subExpCoefs = c(0.8,1) #con y sin subexp
-subExpCoefs = 0.8
+subExpCoefs = 0.7
 nRows=length(alleeCoefs)*length(subExpCoefs)
 
 cuadrantes = tibble(n=seq(1,nRows*nRepeats),
