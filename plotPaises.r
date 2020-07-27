@@ -71,7 +71,9 @@ plot_slopes_p$sp =
   annotate("text",x=0.03,y=log10(2)+0.1,label="equal slopes",size=3) +
   xlim(xlims) + ylim(ylims) +
   geom_text_repel(data=sim_bb_p,aes(label=label),size=3)+
-  labs(x="log10(1+slope before breakout point)",y="log10(1+slope after/slope before)")
+  #labs(x="log10(1+slope before breakout point)",y="log10(1+slope after/slope before)")
+  labs(x=expression(paste(Log10, "(", 1+mu[1], ")")),
+       y=expression(paste(Log10, "(", 1+frac(mu[1],mu[2]), ")"))) 
 
 
 plot_slopes_p$sp$labels$colour=""

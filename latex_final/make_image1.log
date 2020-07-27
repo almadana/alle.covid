@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2019.3.19)  16 JUL 2020 01:06
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2019.3.19)  27 JUL 2020 12:29
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -933,7 +933,7 @@ space.pdf> <../simDynamics.png (PNG copy)>] (./make_image1.aux) )
 Here is how much of TeX's memory you used:
  14967 strings out of 494788
  299474 string characters out of 6177222
- 339531 words of memory out of 5000000
+ 339532 words of memory out of 5000000
  18020 multiletter control sequences out of 15000+600000
  11670 words of font info for 25 fonts, out of 8000000 for 9000
  85 hyphenation exceptions out of 8191
