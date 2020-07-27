@@ -319,15 +319,18 @@ allee1D <- ggplot(rdf, aes(x = Infected, y = R, color = model)) +
                aes(x = Ii, xend = If, y = R, yend = R), color =  "#243faf",
                arrow = arrow(length = unit(0.3, "cm"), ends = "last"),
                size = 1.1) +
-  geom_text(aes(x = point1+50, y = 0.7), label = thresholdText, color = "black",
-            hjust = "inward", family = "sans", fontface = "plain", ) +
-  geom_text(aes(x = point2, y = 0.7), label = immunityText, color = "black",
-            hjust = "inward", family = "sans", fontface = "plain", ) +
+  #geom_text(aes(x = point1+50, y = 0.7), label = thresholdText, color = "black",
+            #hjust = "inward", family = "sans", fontface = "plain", ) +
+  annotate("text",x=point1+50,y=0.7,label=thresholdText,size=4,hjust="inward") +
+  annotate("text",x=point2,y=0.7,label=immunityText,size=4,hjust="inward") +
+#  geom_text(aes(x = point2, y = 0.7), label = immunityText, color = "black",
+ #           hjust = "inward", family = "sans", fontface = "plain" ) +
   theme_classic() +scale_x_continuous(labels = c(0,.25,.5,.75,1)) + 
   theme(legend.position = c(.7,.7),text=element_text(size=12)) 
 
 
 allee1D 
 ggsave("allee1D.pdf", allee1D, width = 15, height = 9, units = "cm")
+ggsave("allee1D.png", allee1D, width = 15, height = 9, units = "cm")
 
 
