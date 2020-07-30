@@ -14,7 +14,7 @@ set.seed(2691)
 nRep <- 1000
 minI <- 10
 maxI <- 1000
-p_se <- 0.8 # sin subexponencial
+p_se <- 0.8 # 1 es sin subexponencial
 I50 <- 10
 nPlotDyn <- 20
 #p_se=0.8 # subexponencial
@@ -112,14 +112,19 @@ fit_segmented <- function(cumI) {
       slopeVals[3] <- slopeVals[2] + slopeVals[3]
     }
     breakingPoint <- ifelse(is.null(cfs$psi), NA, cfs$psi[2])
-    coefficients <- c(slopeVals, breakingPoint,fit)
+    
+    ff0<-lm(cumI~ t)
+    aic<-AIC(ff0,fit)[,2]
+    wi<-exp(-0.5*(aic-min(aic)))/sum(exp(-0.5*(aic-min(aic))))
+    
     # check if breaking point is significant by fitting lm
     #lmFit <- lm(cumI ~ t)
     #pValue <- davies.test(lmFit)$p.value
     # put together
+    coefficients <- c(slopeVals, breakingPoint,wi[2],fit)
     coefficients <- as.list(coefficients)
     names(coefficients) <- c("intercept", "slopeI", "slopeF",
-                             "breakPoint")
+                             "breakPoint","weighted.evidence")
   return(coefficients)
 }
 
@@ -163,14 +168,20 @@ simulations <- SIR_generator(p_se = p_se, allee = allee, nRep = nRep, I50 = I50)
 #}
 
 
-fitCoefs <- group_by(simulations, allee, rep, p) %>%
+fitCoefs <- 
+group_by(simulations, allee, rep, p) %>% 
   dplyr::summarise(., coefs = list(fit_segmented(cumI))) %>%
-  ungroup(.) %>%
-  tidyr::unnest_wider(., coefs) %>%
+  ungroup(.) %>% 
+  tidyr::unnest_wider(., coefs) %>% 
   dplyr::mutate(., cociente = slopeF/slopeI, resta = slopeF - slopeI,
                 angle = atan(abs((slopeF - slopeI)/(1-slopeF*slopeI))),
                 Ithreshold = intercept + slopeI*breakPoint)
 #  dplyr::filter(., cociente > 0)
+
+fitCoefs$allee.f=as.factor(fitCoefs$allee)
+levels(fitCoefs$allee.f)=c("without Allee effect","with Allee effect")
+fitCoefs %>% group_by(allee) %>% summarize_at(vars(weighted.evidence),.funs = list(medianWE=median,meanWE=mean,minWE=min,sdWE=sd))
+
 
 plotChange <- fitCoefs %>%
   dplyr::mutate(., allee = c("w/o Allee", "Allee")[as.integer(allee)+1]) %>%
