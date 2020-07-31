@@ -1,7 +1,7 @@
 ###################################################################
 ##### Dynamic
 
-dyn.sub.exp.Allee.SIR<-function(I0, bet=1.3, gam=5, p, t, Allee, migration, size, I50, K){
+dyn.sub.exp.Allee.SIR<-function(I0, betamax=1.3, gammamax=5, p, t, Allee, migration, size, I50, K){
   out<-matrix(0, nrow = t, ncol=5)
   colnames(out)<-c("S","I","R", "New.I", "Imported")
   out[1,]<-c(K,I0,0,0,0)
@@ -10,14 +10,14 @@ dyn.sub.exp.Allee.SIR<-function(I0, bet=1.3, gam=5, p, t, Allee, migration, size
     if(out[i-1,2]<=0)out[i-1,2]<-out[i,2]<-0
     if(out[i-1,1]<=0)out[i-1,1]<-out[i,1]<-0
         if(Allee==T){
-          new.I<-(bet*(out[i-1,1]*(out[i-1,2])^p)/N)*(out[i-1,2]/(out[i-1,2]+I50))
+          new.I<-(betamax*(out[i-1,1]*(out[i-1,2])^p)/N)*(out[i-1,2]/(out[i-1,2]+I50))
           if(out[i-1,2]>0){
-              rec.I<-(1/(gam*(out[i-1,2]/(out[i-1,2]+I50))))*out[i-1,2]
+              rec.I<-(1/(gammamax*(out[i-1,2]/(out[i-1,2]+I50))))*out[i-1,2]
               } else {rec.I<-0}
           }
           if(Allee==F){
-            new.I<-(bet*(out[i-1,1]*(out[i-1,2])^p)/N)
-            rec.I<-(1/gam)*out[i-1,2]
+            new.I<-(betamax*(out[i-1,1]*(out[i-1,2])^p)/N)
+            rec.I<-(1/gammamax)*out[i-1,2]
         }
         rec.I<-rnbinom(n = 1, size = size, mu = rec.I)
         rec.I<-min(out[i-1,2],rec.I, na.rm=T)
@@ -38,18 +38,18 @@ p_se=1 # sin subexponencial
 #p_se=0.8 # subexponencial
 allee=T
 
-par(mfrow=c(10,10), mar=c(1.5,1.5,0.5,0.5 ))
+par(mfrow=c(2,2), mar=c(1.5,1.5,0.5,0.5 ))
 #for(i in 1:200){
-generador <- function(p_se,allee,N) {
+generador <- function(p_se,allee,N,migration=1,s=0.2,betamax=1.3,gammamax=5) {
   rm(.Random.seed, envir=globalenv())
-  dyn.sub.exp.Allee.SIR(I0=10, bet=0.8, gam=3 , p=p_se, t=100,  migration=1, size=0.2, I50=10, K=N, Allee = allee )->al
+  dyn.sub.exp.Allee.SIR(I0=10, betamax=betamax, gammamax=gammamax , p=p_se, t=100,  migration, s, I50=10, K=N, Allee = allee )->al
   imp<-cumsum(al[,5])  # cumulative number of imported cases
   al<-cumsum(al[,4])   # cumulative number of cases
   I.min<-which(al>9)
   al<-al[I.min]
   I.max<-which(al<0.8*1000)
   al<-al[I.max]
-  print(length(al))
+  #print(length(al))
   al<-al[which(al>10 & al<2500)]
   imp<-imp[which(al>10 & al<2500)]
   #al<-al[which(al>10 )]
@@ -63,17 +63,22 @@ generador <- function(p_se,allee,N) {
   x<-log10(1:length(y))
 #  x<-(1:length(y))
 #  points(z~log10(I(1:length(al))), bty="l", pch=19, col="gold", main="", cex=.8)
-  #ff0<-lm(y~x)
+  ff0<-lm(y~x)
   ff1<-segmented(lm(y~x), seg.Z = ~x, npsi = 1)
-  #aic<-AIC(ff0,ffp, ff1)[,2]
-  #wi<-exp(-0.5*(aic-min(aic)))/sum(exp(-0.5*(aic-min(aic))))
+  aic<-AIC(ff0, ff1)[,2]
+  wi<-exp(-0.5*(aic-min(aic)))/sum(exp(-0.5*(aic-min(aic))))
   cfs = summary(ff1)
+  coeffs = cfs$coefficients
+  if (length(coeffs)<3) {
+    coeffs = c(coeffs,NA,NA)
+    wi=c(1,0)
+  }
   #plot(ff1, add=T, col="red")
   id.psi<-which(x<cfs$psi[2])                                              # The following lines estimate the number of active cases at the break point
   if(length(id.psi)>9) I.active<-al[max(id.psi)]-al[max(id.psi)-9]  # If the time series before the break is larger than 10 days retain the total infected 10 days before...
   if(length(id.psi)<=9)I.active<-al[max(id.psi)]                        # If the time series is shoreter take the total number of infected before the break
   
-  return(c(cfs$coefficients[,1],ifelse(is.null(cfs$psi),NA,cfs$psi[2]),al,I.active))
+  return(c(coeffs,ifelse(is.null(cfs$psi),NA,cfs$psi[2]),al,I.active,wi[2]))
 #  plot(ff1, add=T, col="red")
   }
 }
@@ -106,7 +111,7 @@ library(ggplot2)
 library(ggpubr)
 library(segmented)
 library(ggforce)
-nRepeats = 1000
+nRepeats = 2000
 alleeCoefs = c(F,T)
 pob_condados = c(4.49,0.68)
 pob_paises = c(6.66,1.07)
@@ -115,24 +120,30 @@ pob_paises = c(6.66,1.07)
 #N=round(10^rnorm(nRepeats,pob_paises[1],pob_paises[2]))  #valores para paises
 N=round(10^rnorm(nRepeats,pob_condados[1],pob_condados[2]))  #valores para condados
 #subExpCoefs = c(0.8,1) #con y sin subexp
-subExpCoefs = 0.7
-nRows=length(alleeCoefs)*length(subExpCoefs)
-
+#para ajustar a países y condados
+#subExpCoefs = 0.7
+nRows=length(alleeCoefs)
+#para explorar
+subExpCoefs = runif(nRepeats)*0.2 + 0.7 #uniforme entre 0.7 y 0.9
+betamax = runif(nRepeats)*0.11 + 1.07
+gammamax = runif(nRepeats)*3 + 4
 cuadrantes = tibble(n=seq(1,nRows*nRepeats),
                   allee=rep(alleeCoefs,nRows/length(alleeCoefs)*nRepeats),
                     allee.f = ifelse(allee,"with Allee effect","without Allee effect"),
                     subexp = rep(subExpCoefs,each=nRows/length(subExpCoefs)*nRepeats),subexp.f = ifelse(subexp<1,"with subexp. growth","without subexp. growth"),
-                    N=rep(N,each=nRows))
+                    N=rep(N,each=nRows),
+                  betamax=rep(betamax,each=nRows/length(subExpCoefs)*nRepeats),
+                  gammamax=rep(gammamax,each=nRows/length(subExpCoefs)*nRepeats))
 
 cuadrantes = cuadrantes %>% rowwise() %>% 
   # mutate(modelo=list(generador(subexp,allee)),fit=list(coef(modelo,include.psi=T)))
-  mutate(fit=list(generador(subexp,allee,N)))
+  mutate(fit=list(generador(subexp,allee,N,betamax,gammamax)))
 
 cuadrantes = 
 cuadrantes %>% 
   unnest(fit)  %>% 
   group_by(n) %>% 
-  mutate(coef=c(paste0("coef.",1:5),paste0("t.",1:(n()-6)),"I.active")) %>% #View()
+  mutate(coef=c(paste0("coef.",1:5),paste0("t.",stringr::str_pad(1:(n()-7),3,pad="0")),"I.active","Weighted.evidence")) %>% #View()
   spread(key=coef,value  = fit) %>% 
   rowwise() %>%
   mutate(coef.4 = coef.2+coef.3,
@@ -182,11 +193,11 @@ cuadrantes$allee.f = factor(cuadrantes$allee.f)
 
 ##### 
 
-colnames(cuadrantes)[c(8,10)]=c("initial.slope","slope.after.thresh")
+colnames(cuadrantes)[c(10,12)]=c("initial.slope","slope.after.thresh")
 
 cuadrantes=cuadrantes %>%  filter(initial.slope>0)
 
-save(cuadrantes,file="simulados_allee_condados.RData")
+save(cuadrantes,file="simulados_allee_varia_parametros.RData")
 
 
 ##  plots varios con N

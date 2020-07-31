@@ -38,7 +38,7 @@ plotsDynNonAlleeSM <- dplyr::filter(simulations_fit, allee == FALSE & rep %in% s
   theme(strip.background = element_blank(), strip.text.x = element_blank(),
         plot.title = element_text(hjust = 0.5,size=8),
         text = element_text(size=5)) +
-  geom_line(aes(x=t,y=cumI_fit),color="green")
+geom_line(aes(x=t,y=cumI_fit),color="green")
 
 fig_sim_SM = ggarrange(plotsDynAlleeSM,plotsDynNonAlleeSM,ncol = 2,nrow=1)
 
