@@ -55,7 +55,7 @@ generador <- function(p_se,allee,N) {
   #al<-al[which(al>10 )]
   #imp<-imp[which(al>10 )]
   if(length(al)>10){
-    plot(log10(al)~log10(I(1:length(al))), bty="l", pch=19, col="darkgreen", main="")
+#    plot(log10(al)~log10(I(1:length(al))), bty="l", pch=19, col="darkgreen", main="")
     #plot(log10(al)~(I(1:length(al))), bty="l", pch=19, col="darkgreen", main="")
     
   y<-log10(al)
@@ -68,9 +68,12 @@ generador <- function(p_se,allee,N) {
   #aic<-AIC(ff0,ffp, ff1)[,2]
   #wi<-exp(-0.5*(aic-min(aic)))/sum(exp(-0.5*(aic-min(aic))))
   cfs = summary(ff1)
-  plot(ff1, add=T, col="red")
+  #plot(ff1, add=T, col="red")
+  id.psi<-which(x<cfs$psi[2])                                              # The following lines estimate the number of active cases at the break point
+  if(length(id.psi)>9) I.active<-al[max(id.psi)]-al[max(id.psi)-9]  # If the time series before the break is larger than 10 days retain the total infected 10 days before...
+  if(length(id.psi)<=9)I.active<-al[max(id.psi)]                        # If the time series is shoreter take the total number of infected before the break
   
-  return(c(cfs$coefficients[,1],ifelse(is.null(cfs$psi),NA,cfs$psi[2]),al))
+  return(c(cfs$coefficients[,1],ifelse(is.null(cfs$psi),NA,cfs$psi[2]),al,I.active))
 #  plot(ff1, add=T, col="red")
   }
 }
@@ -103,14 +106,14 @@ library(ggplot2)
 library(ggpubr)
 library(segmented)
 library(ggforce)
-nRepeats = 500
+nRepeats = 1000
 alleeCoefs = c(F,T)
-pob_condados = c(5.27,0.46)
-pob_paises = c(16.3,1.57)
+pob_condados = c(4.49,0.68)
+pob_paises = c(6.66,1.07)
 
 
-N=round(10^rnorm(nRepeats,pob_condados[1],pob_condados[2]))  #valores para paises
-#N=round(10^rnorm(nRepeats,pob_condados[1],pob_condados[2]))  #valores para condados
+#N=round(10^rnorm(nRepeats,pob_paises[1],pob_paises[2]))  #valores para paises
+N=round(10^rnorm(nRepeats,pob_condados[1],pob_condados[2]))  #valores para condados
 #subExpCoefs = c(0.8,1) #con y sin subexp
 subExpCoefs = 0.7
 nRows=length(alleeCoefs)*length(subExpCoefs)
@@ -129,9 +132,9 @@ cuadrantes =
 cuadrantes %>% 
   unnest(fit)  %>% 
   group_by(n) %>% 
-  mutate(coef=c(paste0("coef.",1:5),paste0("t.",1:(n()-5)))) %>% #View()
+  mutate(coef=c(paste0("coef.",1:5),paste0("t.",1:(n()-6)),"I.active")) %>% #View()
   spread(key=coef,value  = fit) %>% 
-  rowwise() %>% 
+  rowwise() %>%
   mutate(coef.4 = coef.2+coef.3,
          cociente = coef.4/coef.2,
          resta=coef.4 - coef.2,
@@ -174,11 +177,23 @@ cuadrantes$allee.f = factor(cuadrantes$allee.f)
 #   xlab="log(1+initial slope)",
 #   ylab="log(1+final slope / initial slope)"
 # ) 
+
+
+
+##### 
+
 colnames(cuadrantes)[c(8,10)]=c("initial.slope","slope.after.thresh")
 
 cuadrantes=cuadrantes %>%  filter(initial.slope>0)
 
 save(cuadrantes,file="simulados_allee_condados.RData")
+
+
+##  plots varios con N
+cuadrantes %>% ggplot(aes(x=log10(N),y=log10(I.active),col=allee.f))+geom_point() +facet_wrap(~allee.f)
+cuadrantes %>% ggplot(aes(x=log10(N),y=log10(1+initial.slope),col=allee.f))+geom_point() +facet_wrap(~allee.f)
+
+
 
 ## -------------- PLOT CON CONVEX HULL -----------------
 xlims=c(0,.5)

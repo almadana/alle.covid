@@ -14,7 +14,7 @@ set.seed(2691)
 nRep <- 1000
 minI <- 10
 maxI <- 1000
-p_se <- 0.8 # sin subexponencial
+p_se <- 0.8 # 1 es sin subexponencial
 I50 <- 10
 nPlotDyn <- 20
 #p_se=0.8 # subexponencial
@@ -112,14 +112,19 @@ fit_segmented <- function(cumI) {
       slopeVals[3] <- slopeVals[2] + slopeVals[3]
     }
     breakingPoint <- ifelse(is.null(cfs$psi), NA, cfs$psi[2])
-    coefficients <- c(slopeVals, breakingPoint)
+    
+    ff0<-lm(cumI~ t)
+    aic<-AIC(ff0,fit)[,2]
+    wi<-exp(-0.5*(aic-min(aic)))/sum(exp(-0.5*(aic-min(aic))))
+    
     # check if breaking point is significant by fitting lm
     #lmFit <- lm(cumI ~ t)
     #pValue <- davies.test(lmFit)$p.value
     # put together
+    coefficients <- c(slopeVals, breakingPoint,wi[2],fit)
     coefficients <- as.list(coefficients)
     names(coefficients) <- c("intercept", "slopeI", "slopeF",
-                             "breakPoint")
+                             "breakPoint","weighted.evidence")
   return(coefficients)
 }
 
@@ -162,14 +167,21 @@ simulations <- SIR_generator(p_se = p_se, allee = allee, nRep = nRep, I50 = I50)
 #  k <- fit_segmented(cumI)
 #}
 
-fitCoefs <- group_by(simulations, allee, rep, p) %>%
+
+fitCoefs <- 
+group_by(simulations, allee, rep, p) %>% 
   dplyr::summarise(., coefs = list(fit_segmented(cumI))) %>%
-  ungroup(.) %>%
-  tidyr::unnest_wider(., coefs) %>%
+  ungroup(.) %>% 
+  tidyr::unnest_wider(., coefs) %>% 
   dplyr::mutate(., cociente = slopeF/slopeI, resta = slopeF - slopeI,
                 angle = atan(abs((slopeF - slopeI)/(1-slopeF*slopeI))),
                 Ithreshold = intercept + slopeI*breakPoint)
 #  dplyr::filter(., cociente > 0)
+
+fitCoefs$allee.f=as.factor(fitCoefs$allee)
+levels(fitCoefs$allee.f)=c("without Allee effect","with Allee effect")
+fitCoefs %>% group_by(allee) %>% summarize_at(vars(weighted.evidence),.funs = list(medianWE=median,meanWE=mean,minWE=min,sdWE=sd))
+
 
 plotChange <- fitCoefs %>%
   dplyr::mutate(., allee = c("w/o Allee", "Allee")[as.integer(allee)+1]) %>%
@@ -184,40 +196,56 @@ plotChange <- fitCoefs %>%
 
 sampleRepetitions <- sample(unique(simulations$rep), nPlotDyn)
 
-plotsDynAllee <- dplyr::filter(simulations, allee == TRUE & rep %in% sampleRepetitions) %>%
+sample4 = sampleRepetitions[order(sampleRepetitions)]
+sample4 = sample4[c(1,2,5,6)]
+
+Nmax=100000
+
+simulations_fit = merge(simulations,fitCoefs,by=c("rep","allee"))
+
+simulations_fit = simulations_fit %>% mutate(t_bp = ceiling(10^breakPoint),cumI_fit = ifelse(t<10^breakPoint, 10^(intercept + log10(t)*slopeI),10^(intercept - log10(t_bp)*slopeF +log10(t_bp-1)*slopeI +log10(t)*slopeF ))) 
+
+#plotsDynAllee <- dplyr::filter(simulations_fit, allee == TRUE & rep %in% sampleRepetitions) %>%
+plotsDynAllee <- dplyr::filter(simulations_fit, allee == TRUE & rep %in%sample4) %>%
   ggplot(., aes(x = t, y = cumI)) +
   geom_point(color = "#b33018") +
-  facet_wrap(~rep, scales = "free", ncol = 4) +
+#  facet_wrap(~rep, scales = "free", ncol = 4) +
+  facet_wrap(~rep, scales = "free", ncol = 2) +
   scale_x_continuous(breaks = c(1, 5, 25), trans = "log10") +
   scale_y_continuous(limits = c(10, NA), trans = "log10") +
   xlab("time (days)") +
   #ylab("Cumulative infected") +
   ylab(element_blank()) +
-  ggtitle("Allee") +
+  ggtitle("with Allee effect") +
   theme_classic() +
   theme(strip.background = element_blank(), strip.text.x = element_blank(),
         plot.title = element_text(hjust = 0.5)) +
-  NULL
+  geom_line(aes(x=t,y=cumI_fit),color="pink")
+
+plotsDynAllee
   
-plotsDynNonAllee <- dplyr::filter(simulations, allee == FALSE & rep %in% sampleRepetitions) %>%
+#plotsDynNonAllee <- dplyr::filter(simulations_fit, allee == FALSE & rep %in% sampleRepetitions) %>%
+plotsDynNonAllee <- dplyr::filter(simulations_fit, allee == FALSE & rep %in% sample4) %>%
   ggplot(., aes(x = t, y = cumI)) +
   geom_point(color = "#14b74b") +
-  facet_wrap(~rep, scales = "free", ncol = 4) +
+#  facet_wrap(~rep, scales = "free", ncol = 4) +
+  facet_wrap(~rep, scales = "free", ncol = 2) +
   scale_x_continuous(breaks = c(1, 5, 25), trans = "log10") +
   scale_y_continuous(limits = c(10, NA), trans = "log10") +
   xlab("time (days)") +
   #ylab("Cumulative infected") +
   ylab(element_blank()) +
-  ggtitle("W/o Allee") +
+  ggtitle("without Allee effect") +
   theme_classic() +
   theme(strip.background = element_blank(), strip.text.x = element_blank(),
         plot.title = element_text(hjust = 0.5)) +
-  NULL
-  
+  geom_line(aes(x=t,y=cumI_fit),color="green")
+
 dynsPlots <- grid.arrange(plotsDynAllee, plotsDynNonAllee, ncol=2,
                           left = "Cumulative infected")
 
 ggsave("simDynamics.png", dynsPlots, width = 18, height = 11, units = "cm")
-ggsave("slopeAnalysis.png", width = 12, height = 12, units = "cm")
+ggsave("simDynamics.pdf", dynsPlots, width = 18, height = 11, units = "cm")
+#ggsave("slopeAnalysis.png", width = 12, height = 12, units = "cm")
 
 

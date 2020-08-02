@@ -1,4 +1,8 @@
 #### Dara bases from The New York Times and from US Census
+require(segmented)
+require(dplyr)
+require(ggplot2)
+
 us.counties <- read.csv("us-counties.csv")
 co.est2019.alldata <- read.csv("co-est2019-alldata.csv", header=TRUE)
 
@@ -9,11 +13,11 @@ colnames(nn)[1]<-"Id"
 condados<-function(nn, us.counties){
   library("segmented")
   out<-NULL
-  par(mfrow=c(5,5), mar=c(2,2,2,0.5 ))
-  for (i in nn[,1]){
-    ii<-which(us.counties[,4]==i)
+  #par(mfrow=c(5,5), mar=c(2,2,2,0.5 ))
+  for (i in condPop[,"fips"]){
+    ii<-which(us_counties[,"fips"]==i)
     if(length(ii)>15){
-      x<-us.counties[ii,5]
+      x<-pull(us_counties[ii,5])
       X<-diff(x)
       id<-which(X==max(X))[1]
       if(length(14:id)>15 & min(x[14:id])>10 & max(x)>200) {    # 14 Days for having enough time for diseases dynamic (many counties have weeks with few cases)
@@ -25,7 +29,6 @@ condados<-function(nn, us.counties){
         ff0<-lm(Infect~ tt)
         aic<-AIC(ff0,ff1)[,2]
         wi<-exp(-0.5*(aic-min(aic)))/sum(exp(-0.5*(aic-min(aic))))
-
         p.li<-coefficients(ff0)
  #   if(length(which(tt<fit$psi[2]))>10 & 
 #       as.vector(p.seg)[2]<as.vector(p.seg)[3] &
@@ -33,8 +36,8 @@ condados<-function(nn, us.counties){
 #       length(which(tt>fit$psi[2]))>10 &
 #       as.vector(p.seg)[3]>1.5
 #       ){
-        plot(Infect~tt ,bty="l", pch=19, col="navy", cex=.8, main=nn[which(nn[,1]==i),3])        
-        plot(ff1, add=T, col="red")
+        #plot(Infect~tt ,bty="l", pch=19, col="navy", cex=.8, main=nn[which(nn[,1]==i),3])        
+        #plot(ff1, add=T, col="red")
 #        }
         N.county<-nn[which(nn[,1]==i),4]                                          # Population of the country
         id.psi<-which(tt<fit$psi[2])                                              # The following lines estimate the number of active cases at the break point
@@ -52,58 +55,38 @@ condados<-function(nn, us.counties){
 }      
 save.image()
 ###########
-condados(nn = nn, us.counties = us.counties)->b
+condados(nn = condPop, us.counties = us_counties)->b
 
 head(b)
-b[,6]<-b[,6]+b[,5]
-#b<-cbind(b,10^(b[,4]+b[,5]*b[,7]))
+
+
+b<-cbind(b,10^(b[,4]+b[,5]*b[,7]))
 #b[,10]<-10^(b[,4]+b[,5]*b[,7])
 
 #quitar los que no ajustgaron bien
 b=  b[!(is.na(b[,8])),]
 
-par(mfrow=c(2,3), mar=c(4,4,2,2))
-hist(b[,5], col="navy", border = "gray", main="Initial Slope", xlab="Slope")
+pdf(file="S3.pdf",width = 8,height = 4)
+source("plotS3.r")
+dev.off()
 
-umbralBajo = b[,10]<10
-
-hist(b[umbralBajo,6], col="red", border = "gray", main="Slope after  threshold", xlab="Slope",probability = T)
-hist(b[!umbralBajo,6], col="navy", border = "gray", main="Slope after  threshold", xlab="Slope",add=T,probability = T)
-
-
-hist(log10(b[,10]), col="navy", border = "gray", main="Active infected at breakpoint", xlab="Log10(Active Cases)")
+svg(file="S3.svg",width = 8,height = 4)
+source("plotS3.r")
+dev.off()
 
 
-#hist(log10(b[,10]), col="navy", border = "gray", main="Infection Threshold ", xlab="log10(Infected)", breaks=20)
 
-#hist((b[,10]/b[,2]*100), col="navy",
-#     border = "gray", main="Infection Number ",
-#     xlab="log10(Infected)", breaks=100, xlim=c(0,.5))
+png(file="S3.png",width = 1200,height = 600)
+source("plotS3.r")
+dev.off()
 
-plot(b[,5]~ log10(b[,2]), bty="l", pch=19, col="navy", xlab="Log(Population)", ylab="Initial Slope")
-abline(lm(b[,5]~ log10(b[,2])), col="red", lwd=2)
-summary(lm(b[,5]~ log10(b[,2])), col="red", lwd=2)
-text(4.5,1.25,"b0~N^0.23\np:1.09e-07")
-points(b[,5]~ log10(b[,2]),  col="gray")
-
-plot(b[,6]~ log10(b[,2]), bty="l", pch=19, col="navy", xlab="Log(Population)", ylab="Slope after threshold")
-#abline(lm(b[,6]~ log10(b[,2])), col="red", lwd=2)
-#summary(lm(b[,6]~ log10(b[,2])), col="red", lwd=2)
-#text(4.5,1.25,"b0~N^0.23\np:1.09e-07")
-points(b[,6]~ log10(b[,2]),  col="gray")
-
-plot(log10(b[-which(log10(b[,10])<1),10])~ log10(b[-which(log10(b[,10])<1),2]), bty="l", pch=19, col="navy", xlab="Log(Population)", ylab="Log(Infection threshold)")
-abline(lm(log10(b[-which(log10(b[,10])<1),10])~ log10(b[-which(log10(b[,10])<1),2])), col="red", lwd=2)
-summary(lm(log10(b[-which(log10(b[,10])<1),10])~ log10(b[-which(log10(b[,10])<1),2])), col="red", lwd=2)
-#text(4.5,3,"Inf.thres.~N^0.42\np:7.8e-12\nr-sqrt:0.20")
-points(log10(b[-which(log10(b[,10])<1),10])~ log10(b[-which(log10(b[,10])<1),2]),  col="gray")
 
 ####
 
 plot(b[,5]~ log10(b[,2]), bty="l", pch=19, col="navy", xlab="Log(Population)", ylab="Initial Slope")
 abline(lm(b[,5]~ log10(b[,2])), col="red", lwd=2)
 summary(lm(b[,5]~ log10(b[,2])), col="red", lwd=2)
-text(4.5,1.25,"b0~N^0.23\np:1.09e-07")
+text(4.5,1.25,"b0~N^0.23\np:1.09e-07\nr-sqrd:0.3")
 points(b[,5]~ log10(b[,2]),  col="gray")
 
 plot(b[,6]~ log10(b[,2]), bty="l", pch=19, col="navy", xlab="Log(Population)", ylab="Slope after threshold")
@@ -112,10 +95,10 @@ plot(b[,6]~ log10(b[,2]), bty="l", pch=19, col="navy", xlab="Log(Population)", y
 #text(4.5,1.25,"b0~N^0.23\np:1.09e-07")
 points(b[,6]~ log10(b[,2]),  col="gray")
 
-plot(log10(b[,10])~ log10(b[,2]), bty="l", pch=19, col="navy", xlab="Log(Population)", ylab="Log(Infection threshold)")
+plot(log10(b[,10])~ log10(b[,2]), bty="l", pch=19, col="navy", xlab="Log(Population)", ylab="Log(Active at threshold)")
 abline(lm(log10(b[,10])~ log10(b[,2])), col="red", lwd=2)
 summary(lm(log10(b[,10])~ log10(b[,2])), col="red", lwd=2)
-text(4.5,3,"Inf.thres.~N^0.42\np:7.8e-12\nr-sqrt:0.19")
+text(4.5,3,"Inf.thres.~N^0.42\np:7.8e-12\nr-sqrd:0.19")
 points(log10(b[,10])~ log10(b[,2]),  col="gray")
 
 
