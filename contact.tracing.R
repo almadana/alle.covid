@@ -222,7 +222,7 @@ linksLong <- Rt_links(maxLinks = maxLinks_Vec, maxDetected = maxDetected,
                         propInfectedMax = propInfectedMax) %>% 
             enlongate_matrix(., c("Infected", "maxLinks"), infectedSubsample)
 linksPlot <- dplyr::rename(linksLong, measure = maxLinks) %>% mutate(Infected =Infected/ Npop) %>% 
-  plot_phase_space(., "Maximum social links") +
+  plot_phase_space(., expression(L[max])) +
   ggtitle("Social distancing") +
   theme(plot.title = element_text(hjust = 0.5))
 
@@ -233,8 +233,8 @@ infectionLong <- Rt_pInfection(maxLinks = maxLinks, maxDetected = maxDetected,
                         propInfectedMax = propInfectedMax) %>%
             enlongate_matrix(., c("Infected", "pInfection"), infectedSubsample)
 infectionPlot <- dplyr::rename(infectionLong, measure = pInfection) %>%mutate(Infected =Infected/ Npop) %>% 
-  plot_phase_space(., "Contact infectiousness") +
-  ggtitle("Hygiene measures") +
+  plot_phase_space(., expression(b[link])) +
+  ggtitle("Personal behavior") +
   theme(plot.title = element_text(hjust = 0.5))
 
 
@@ -260,7 +260,7 @@ ggsave("phase_space.pdf", plotGrid, width = 15, height = 13, units = "cm")
 
 
 
-########################
+|########################
 # plot 1d phase space
 ########################
 
@@ -305,9 +305,9 @@ immunityText <- c("Population \nimmunity")
 allee1D <- ggplot(rdf, aes(x = Infected, y = R, color = model)) +
   geom_line(size = 1) +
   scale_color_manual(values = c("#b33018", "#14b74b"), name = "SIR Model",
-                     labels = c("with Allee effect", "without Allee effect")) +
+                     labels = c("with saturation in contact tracing", "without saturation in contact tracing")) +
   geom_hline(yintercept = 1, size = 1, linetype = "dashed") +
-  geom_segment(aes(x = point1, xend = point1, y = 0, yend = 2), color = "red",
+  geom_segment(aes(x = point1, xend = point1, y = 0, yend = 1.8), color = "red",
                linetype = "dashed") +
   xlab("Proportion infected") +
   ylab(bquote('Reproductive number ' ~R[e] )) +
@@ -323,6 +323,7 @@ allee1D <- ggplot(rdf, aes(x = Infected, y = R, color = model)) +
             #hjust = "inward", family = "sans", fontface = "plain", ) +
   annotate("text",x=point1+50,y=0.7,label=thresholdText,size=4,hjust="inward") +
   annotate("text",x=point2,y=0.7,label=immunityText,size=4,hjust="inward") +
+  annotate("text",x=point1+50,y=2,label="Allee effect",hjust="center",size=5)+
 #  geom_text(aes(x = point2, y = 0.7), label = immunityText, color = "black",
  #           hjust = "inward", family = "sans", fontface = "plain" ) +
   theme_classic() +scale_x_continuous(labels = c(0,.25,.5,.75,1)) + 

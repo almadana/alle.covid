@@ -8,17 +8,6 @@ library(ggpubr)
 library(segmented)
 library(gridExtra)
 
-# simulation parameters
-
-set.seed(2691)
-nRep <- 1000
-minI <- 10
-maxI <- 1000
-p_se <- 0.8 # 1 es sin subexponencial
-I50 <- 10
-nPlotDyn <- 20
-#p_se=0.8 # subexponencial
-
 # SIR simulation with Allee effect
 SIR_Allee <- function(I0, betaMax=1.4, gammaMax=5, p, durSim,
                                   Allee = TRUE, migration = 1,
@@ -73,13 +62,28 @@ SIR_Allee <- function(I0, betaMax=1.4, gammaMax=5, p, durSim,
 
 # generate repetitions of simulations
 SIR_generator <- function(p_se, allee, nRep, I50) {
+  
+  #N=round(10^rnorm(nRepeats,pob_paises[1],pob_paises[2]))  #valores para paises
+  
+  
   outputDf <- data.frame()
   for (al in allee) {
     rep <- 1
     while (rep <= nRep) {
-      sim <- SIR_Allee(I0=10, betaMax=0.8, gammaMax=3 , p=p_se,
+      #N=round(10^rnorm(1,pob_condados[1],pob_condados[2]))  #valores para condados
+      N=100000
+      #nRows=length(alleeCoefs)
+      #para explorar
+      #subExpCoefs = runif(1)*0.2 + 0.7 #uniforme entre 0.7 y 0.9
+      subExpCoefs=0.8
+      #betamax = runif(1)*0.11 + 1.07
+      betamax = 1.12
+      #gammamax = runif(1)*3 + 4
+      gammamax=5
+      
+      sim <- SIR_Allee(I0=10, betaMax=betamax, gammaMax=gammamax , p=subExpCoefs,
                                    durSim=200,  migration=1, dispersion=0.2,
-                                   I50=I50, Nsus=100000, Allee = al)
+                                   I50=I50, Nsus=N, Allee = al)
       sim <- dplyr::mutate(sim, cumI = cumsum(newI),
                            cumImported = cumsum(Imported),
                            rep = rep, allee = al, p = p_se) %>%
@@ -155,8 +159,25 @@ fit_segmented <- function(cumI) {
 #}
 
 
+# simulation parameters
+
+set.seed(2691)
+nRep <- 4000
+minI <- 10
+maxI <- 1000
+p_se <- 0.8 # 1 es sin subexponencial
+I50 <- 10
+nPlotDyn <- 20
+#p_se=0.8 # subexponencial
+
+
 #### Run simulations and plot data ######
 allee <- c(TRUE, FALSE)
+
+
+pob_condados = c(4.49,0.68)
+pob_paises = c(6.66,1.07)
+
 simulations <- SIR_generator(p_se = p_se, allee = allee, nRep = nRep, I50 = I50)
 
 #cumI <- filter(simulations, allee == TRUE & rep == 1)[["cumI"]]
@@ -225,7 +246,7 @@ plotsDynAllee <- dplyr::filter(simulations_fit, allee == TRUE & rep %in%sample4)
 plotsDynAllee
   
 #plotsDynNonAllee <- dplyr::filter(simulations_fit, allee == FALSE & rep %in% sampleRepetitions) %>%
-plotsDynNonAllee <- dplyr::filter(simulations_fit, allee == FALSE & rep %in% sample4) %>%
+plotsDynNonAllee <- dplyr::filter(simulations_fit, allee == FALSE & rep %in% sample4) %>% View()
   ggplot(., aes(x = t, y = cumI)) +
   geom_point(color = "#14b74b") +
 #  facet_wrap(~rep, scales = "free", ncol = 4) +

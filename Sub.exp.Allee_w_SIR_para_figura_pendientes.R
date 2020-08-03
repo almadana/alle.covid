@@ -40,7 +40,7 @@ allee=T
 
 par(mfrow=c(2,2), mar=c(1.5,1.5,0.5,0.5 ))
 #for(i in 1:200){
-generador <- function(p_se,allee,N,migration=1,s=0.2,betamax=1.3,gammamax=5) {
+generador <- function(p_se,allee,N,migration=1,s=0.2,betamax=1.4,gammamax=5) {
   rm(.Random.seed, envir=globalenv())
   dyn.sub.exp.Allee.SIR(I0=10, betamax=betamax, gammamax=gammamax , p=p_se, t=100,  migration, s, I50=10, K=N, Allee = allee )->al
   imp<-cumsum(al[,5])  # cumulative number of imported cases

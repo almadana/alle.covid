@@ -45,7 +45,7 @@ plot_slopes_s6b=
                 ggtheme=theme_bw(),
                 xlab="log10(1+slope before breakout point)",
                 ylab="log10(1+slope after/slope before)",
-                palette = c("#b33018","#14b74b"),
+                palette = c("#14b74b","#b33018"),
                 ylim=ylims,
                 xlim=xlims
   )
@@ -54,9 +54,9 @@ plot_slopes_s6b=
 plot_slopes_s6b$sp = 
   fitCoefs %>% filter(cociente>1) %>%
   ggplot(aes(group=allee.f,fill=allee.f,x=log10(1+slopeI),y=log10(1+cociente))) +
-  stat_density_2d(geom="polygon",aes(fill=allee.f,alpha=..level..),contour=T,bins=50) + 
-    scale_fill_manual(values = c("#b33018","#14b74b")) + theme_classic() +
-  scale_color_manual(values=c("#b33018","#14b74b"))+
+  stat_density_2d(geom="polygon",aes(fill=allee.f,alpha=..level..),contour=T,bins=20) + 
+    scale_fill_manual(values = c("#14b74b","#b33018")) + theme_classic() +
+  scale_color_manual(values=c("#14b74b","#b33018"))+
   theme(legend.position = "none") +  
   geom_abline(slope=0,intercept = log10(2)-.1,linetype="dotted") +
   xlim(xlims) + ylim(ylims) +
