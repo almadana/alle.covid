@@ -1,7 +1,7 @@
 \documentclass[10pt]{article}
 
 %\mode<presentation>{}
-\usepackage[left=1.2in,top=1.0in,right=.5in,bottom=1.0in,landscape]{geometry}
+\usepackage[left=1in,top=.2in,right=5in,bottom=.15in,paperwidth=10in,paperheight=3.2in]{geometry}
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
 \usepackage{tikz}
@@ -21,7 +21,7 @@
 \newcommand\BWone{3.5}
 \newcommand\BWtwo{3}
 \newcommand\BWthree{3}
-\newcommand\BHone{0.5}
+\newcommand\BHone{0.6}
 \newcommand\BHtwo{1}
 \newcommand\BHthree{1.1}
 
@@ -65,11 +65,11 @@
    
 
        node[pos=0.5] (ecuacion){\scriptsize $R_e = P_{susceptible} \cdot b_{link} (L \cdot f_{q} + L_{max} \cdot f_{nq})$};
-\draw[->,red] (-6.5,1.1) -- (-6.5,\Vone-\BHone+.4) node[anchor=north west ,black ] [xshift=-.3cm] { \scalebox{.9}{ \scriptsize Social distancing} };
+\draw[->,red] (-6.5,1.1) -- (-6.5,\Vone-\BHone+.5) node[anchor=north west ,black ] [xshift=-.3cm] { \scalebox{.9}{ \scriptsize Social distancing} };
 
-\draw[->,red] (-7.2,1.1) -- (-7.8,\Vone-\BHone+.4) node[anchor=north,black ] {\scalebox{.9}{\scriptsize Contact tracing} };
+\draw[->,red] (-7.2,1.1) -- (-7.8,\Vone-\BHone+.5) node[anchor=north,black ] {\scalebox{.9}{\scriptsize Contact tracing} };
 
-\draw[->,red] (-8,1.1) -- (-9.3,\Vone-\BHone+.4) node[anchor=north east,black,xshift=.3cm] {¸\scalebox{.9}{\scriptsize Personal behavior} };
+\draw[->,red] (-8,1.1) -- (-9.3,\Vone-\BHone+.5) node[anchor=north east,black,xshift=.3cm] {\scalebox{.9}{\scriptsize Personal behavior} };
 
 
 
@@ -91,11 +91,11 @@
 
   
   \draw[fill=boxcolor,draw=none]  (\Hthree-\BWone,\Vone-\BHone) rectangle (\Hthree+\BWone,\Vone+\BHone)
-    node[anchor=north east,pos=1,align=left,font=\tiny] [xshift=-.6cm] {\scalebox{0.6} \bf Simulated SIR Dynamics \\
+    node[anchor=north east,pos=1,align=left,font=\tiny] [xshift=.2cm] {\scalebox{.8} \bf Simulated SIR Dynamics \\
     \begin{tabular}{l r}
-       \scalebox{0.6} { $S(t+1) = S(t) - I_{new}(d)$ } & \scalebox{0.6} {$I_{new}(t)\sim {\rm Poisson}(\lambda) $ }\\
-           \scalebox{0.6} {$I(t+1) = I(t) + I_{new}(t) - \frac{I(t)}{\gamma(I(t))} + I_{imp}(t) $  }  &  \scalebox{0.6}{ $\lambda= \frac{\beta(I(t)) I(t)^p S(t)}{N} $}\\
-             \scalebox{0.6} {$R(t+1) = R(t) + \frac{I(t)}{\gamma(I(t))} $ } &   \scalebox{0.6} {$I_{imp}(t) \sim NB (\mu, \sigma) $} \\
+       \scalebox{.8} { $S(t+1) = S(t) - I_{new}(d)$ } & \scalebox{0.8} {$I_{new}(t)\sim {\rm Poisson}(\lambda) $ }\\
+           \scalebox{0.8} {$I(t+1) = I(t) + I_{new}(t) - \frac{I(t)}{\gamma(I(t))} + I_{imp}(t) $  }  &  \scalebox{0.8}{ $\lambda= \frac{\beta(I(t)) I(t)^p S(t)}{N} $}\\
+             \scalebox{0.8} {$R(t+1) = R(t) + \frac{I(t)}{\gamma(I(t))} $ } &   \scalebox{0.8} {$I_{imp}(t) \sim NB (\mu, \sigma) $} \\
   \end{tabular}\\
 
     

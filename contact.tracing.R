@@ -160,8 +160,8 @@ plot_phase_space <- function(inputDF, xName, reverse = FALSE){
   spacePlot <- ggplot(inputDF, aes(x = measure, y = Infected, fill = Rt_exp)) +
     geom_raster() +
     scale_fill_manual(values = c("#243faf", "#fa3d1b"),
-                      name = element_blank(), labels = c("Rt < 1 (Containment)",
-                                                         "Rt > 1 (Outbreak)")) +
+                      name = element_blank(), labels = c(expression(paste(R[e]," < 1 (Containment)")),
+                                                         expression(paste(R[e]," > 1 (Outbreak)")))) +
     scale_x_continuous(name = xName, expand = c(0,0)) +
     scale_y_continuous(name = "Proportion infected", expand = c(0,0),limits = c(0,.8)) +
     theme_bw()
@@ -222,7 +222,7 @@ linksLong <- Rt_links(maxLinks = maxLinks_Vec, maxDetected = maxDetected,
                         propInfectedMax = propInfectedMax) %>% 
             enlongate_matrix(., c("Infected", "maxLinks"), infectedSubsample)
 linksPlot <- dplyr::rename(linksLong, measure = maxLinks) %>% mutate(Infected =Infected/ Npop) %>% 
-  plot_phase_space(., expression(L[max])) +
+  plot_phase_space(., expression( paste(Maximum," ",social," ",links, " (", L[max], ")")  )) +
   ggtitle("Social distancing") +
   theme(plot.title = element_text(hjust = 0.5))
 
@@ -233,7 +233,9 @@ infectionLong <- Rt_pInfection(maxLinks = maxLinks, maxDetected = maxDetected,
                         propInfectedMax = propInfectedMax) %>%
             enlongate_matrix(., c("Infected", "pInfection"), infectedSubsample)
 infectionPlot <- dplyr::rename(infectionLong, measure = pInfection) %>%mutate(Infected =Infected/ Npop) %>% 
-  plot_phase_space(., expression(b[link])) +
+  #plot_phase_space(., expression(b[link])) +
+  plot_phase_space(., expression( paste(Contact," ",infectiousness, " (", b[link], ")")  )) +
+  
   ggtitle("Personal behavior") +
   theme(plot.title = element_text(hjust = 0.5))
 
@@ -241,7 +243,7 @@ infectionPlot <- dplyr::rename(infectionLong, measure = pInfection) %>%mutate(In
 
 # arrange plots into grid
 legendPlot <- detectedPlot + theme(legend.position = "top")
-legend <- gtable_filter(ggplotGrob(legendPlot), "guide-box")
+legend <- gtable::gtable_filter(ggplotGrob(legendPlot), "guide-box")
 
 plotGrid <- grid.arrange(legend,
                      arrangeGrob(detectedPlot + theme(legend.position="none",
@@ -260,7 +262,7 @@ ggsave("phase_space.pdf", plotGrid, width = 15, height = 13, units = "cm")
 
 
 
-|########################
+########################
 # plot 1d phase space
 ########################
 
@@ -327,7 +329,7 @@ allee1D <- ggplot(rdf, aes(x = Infected, y = R, color = model)) +
 #  geom_text(aes(x = point2, y = 0.7), label = immunityText, color = "black",
  #           hjust = "inward", family = "sans", fontface = "plain" ) +
   theme_classic() +scale_x_continuous(labels = c(0,.25,.5,.75,1)) + 
-  theme(legend.position = c(.7,.7),text=element_text(size=12)) 
+  theme(legend.position = c(.7,.8),text=element_text(size=12)) 
 
 
 allee1D 

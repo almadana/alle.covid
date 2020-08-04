@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2019.3.19)  3 AUG 2020 19:20
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017/Debian) (preloaded format=pdflatex 2019.3.19)  3 AUG 2020 22:45
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -713,7 +713,7 @@ Package: textpos 2016/06/07 1.8, absolute positioning of text on the page
 \TPVertModule=\dimen160
 \TP@margin=\dimen161
 \TP@absmargin=\dimen162
-Grid set 16 x 16 = 49.68562pt x 38.39343pt
+Grid set 16 x 16 = 45.16875pt x 14.45398pt
 \TPboxrulesize=\dimen163
 \TP@ox=\dimen164
 \TP@oy=\dimen165
@@ -813,19 +813,19 @@ File: ot1phv.fd 2001/06/04 scalable font definitions for OT1/phv.
 *geometry* detected driver: pdftex
 *geometry* verbose mode - [ preamble ] result:
 * driver: pdftex
-* paper: <default>
+* paper: custom
 * layout: <same size as paper>
 * layoutoffset:(h,v)=(0.0pt,0.0pt)
-* modes: landscape 
-* h-part:(L,W,R)=(86.72377pt, 672.11122pt, 36.135pt)
-* v-part:(T,H,B)=(72.26999pt, 469.75502pt, 72.26999pt)
-* \paperwidth=794.96999pt
-* \paperheight=614.295pt
-* \textwidth=672.11122pt
-* \textheight=469.75502pt
-* \oddsidemargin=14.45378pt
-* \evensidemargin=14.45378pt
-* \topmargin=-37.0pt
+* modes: 
+* h-part:(L,W,R)=(72.26999pt, 289.08002pt, 361.34999pt)
+* v-part:(T,H,B)=(14.45377pt, 205.96996pt, 10.84006pt)
+* \paperwidth=722.7pt
+* \paperheight=231.26378pt
+* \textwidth=289.08002pt
+* \textheight=205.96996pt
+* \oddsidemargin=0.0pt
+* \evensidemargin=0.0pt
+* \topmargin=-94.81622pt
 * \headheight=12.0pt
 * \headsep=25.0pt
 * \topskip=10.0pt
@@ -926,15 +926,20 @@ File: ../simDynamics.png Graphic file (type png)
 <use ../simDynamics.png>
 Package pdftex.def Info: ../simDynamics.png  used on input line 104.
 (pdftex.def)             Requested size: 204.76137pt x 125.1694pt.
- [1
+
+Overfull \hbox (327.33415pt too wide) in paragraph at lines 107--108
+[][] 
+ []
+
+[1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map} <../allee1D.pdf> <../phase_
 space.pdf> <../simDynamics.png (PNG copy)>] (./make_image1.aux) ) 
 Here is how much of TeX's memory you used:
- 14967 strings out of 494788
- 299474 string characters out of 6177222
- 339532 words of memory out of 5000000
- 18020 multiletter control sequences out of 15000+600000
+ 14966 strings out of 494788
+ 299465 string characters out of 6177222
+ 339565 words of memory out of 5000000
+ 18019 multiletter control sequences out of 15000+600000
  11670 words of font info for 25 fonts, out of 8000000 for 9000
  85 hyphenation exceptions out of 8191
  55i,12n,73p,852b,704s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -946,7 +951,7 @@ c/amsfonts/cm/cmr5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfon
 ts/cm/cmr7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cm
 sy5.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb
 ></usr/share/texlive/texmf-dist/fonts/type1/urw/helvetic/uhvr8a.pfb>
-Output written on make_image1.pdf (1 page, 282860 bytes).
+Output written on make_image1.pdf (1 page, 283016 bytes).
 PDF statistics:
  59 PDF objects out of 1000 (max. 8388607)
  39 compressed objects within 1 object stream

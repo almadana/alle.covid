@@ -144,4 +144,25 @@ ggsave(plotsPaises_SM,file="sm2_2.pdf",width=6,height = 4)
 ggsave(plotsPaises_SM,file="sm2_2.png",width=6,height = 4)
 
 
+plotsPaises_SM <- country_data_fit %>% #filter(Id %in% countryList[81:113]) %>% 
+  ggplot(., aes(x = t, y = cumI)) +
+  geom_point(color = "#4020ab",size=.6) +
+  facet_wrap(~country, scales = "free", ncol = 8) +
+  scale_x_continuous(breaks = c(1, 5, 25), trans = "log10") +
+  #scale_y_continuous(limits = c(10, NA), trans = "log10") +
+  scale_y_continuous(trans = "log10") +
+  #xlab("time (days)") +
+  #ylab("Cumulative infected") +
+  #ylab(element_blank()) +
+  ggtitle("Countries & regions") +
+  theme_classic() +
+  theme(strip.background = element_rect(linetype = 0),
+        #strip.text.x = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        text = element_text(size=5)) +
+  xlab(element_text("time (days)",size=10)) +
+  ylab(element_text("Cumulative infected",size=10)) +
+  geom_line(aes(x=t,y=cumI_fit),color="sky blue")
 
+ggsave(plotsPaises_SM,file="sm2.pdf",width=6,height = 12)
+ggsave(plotsPaises_SM,file="sm2.png",width=6,height = 12)
