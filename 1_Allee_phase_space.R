@@ -256,7 +256,7 @@ plotGrid <- grid.arrange(legend,
                      heights=c(1, 10))
 
 
-ggsave("phase_space.pdf", plotGrid, width = 15, height = 13, units = "cm")
+ggsave("./plots/phase_space.pdf", plotGrid, width = 15, height = 13, units = "cm")
 
 
 
@@ -305,7 +305,7 @@ immunityText <- c("Population \nimmunity")
 allee1D <- ggplot(rdf, aes(x = Infected, y = R, color = model)) +
   geom_line(size = 1) +
   scale_color_manual(values = c("#b33018", "#14b74b"), name = "SIR Model",
-                     labels = c("with Allee effect", "without Allee effect")) +
+                     labels = c("with NPIs", "without NPIs")) +
   geom_hline(yintercept = 1, size = 1, linetype = "dashed") +
   geom_segment(aes(x = point1, xend = point1, y = 0, yend = 2), color = "red",
                linetype = "dashed") +
@@ -330,7 +330,7 @@ allee1D <- ggplot(rdf, aes(x = Infected, y = R, color = model)) +
 
 
 allee1D 
-ggsave("allee1D.pdf", allee1D, width = 15, height = 9, units = "cm")
-ggsave("allee1D.png", allee1D, width = 15, height = 9, units = "cm")
+ggsave("./plots/allee1D.pdf", allee1D, width = 15, height = 9, units = "cm")
+#ggsave("allee1D.png", allee1D, width = 15, height = 9, units = "cm")
 
 

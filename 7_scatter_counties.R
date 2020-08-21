@@ -54,7 +54,6 @@ sim_countiesFit <- merge(simFit[,mergeCols], countiesFit, by=mergeCols, all=T) %
 sim_countiesFit$breakout <- sim_countiesFit$slopeRatio > 1
 sim_countiesFit$breakout_allee = interaction(sim_countiesFit$allee, sim_countiesFit$breakout)
 
-
 #### ----- PLOT FIGURA 2 ------
 
 xlims=c(0,.35)
@@ -77,7 +76,7 @@ plot_slopes <- sim_countiesFit %>%
                 ggtheme=theme_bw(),
                 xlab="log10(1+slope before breakout point)",
                 ylab="log10(1+slope after/slope before)",
-                palette = c("#000080","#b33018","#14b74b"),
+                palette = c("#b33018","#14b74b","#000080"),
                 ylim=ylims,
                 xlim=xlims)
 
