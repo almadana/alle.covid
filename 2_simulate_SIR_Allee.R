@@ -11,14 +11,21 @@ library(gridExtra)
 # simulation parameters
 
 set.seed(2691)
-nRep <- 1000
+nRep <- 500
 minI <- 10
 maxI <- 1000
-p_se <- 0.8 # 1 es sin subexponencial
-I50 <- 10
 popSizeStats <- c(mean = 5.2, sd = 0.5)
+# epidemic values
+p_se <- 0.8 # 1 es sin subexponencial
+I50 <- 20
+betaMax <- 1.4
+gammaMax <- 5
+# spread values
+beta_dispersion <- 0.2
+muImported <- 1
 #p_se=0.8 # subexponencial
-popSizes <- round(10^rnorm(nRep, popSizeStats[1], popSizeStats[2]))  #valores para condados
+# sample populations
+popSizes <- round(10^rnorm(nRep, popSizeStats[1], popSizeStats[2]))
 
 # SIR simulation with Allee effect
 SIR_Allee <- function(I0, betaMax=1.4, gammaMax=5, p, durSim,
@@ -73,15 +80,17 @@ SIR_Allee <- function(I0, betaMax=1.4, gammaMax=5, p, durSim,
 }
 
 # generate repetitions of simulations
-SIR_generator <- function(p_se, allee, popSizes, I50) {
+SIR_generator <- function(p_se, allee, popSizes, I50, betaMax = 1.4,
+                          gammaMax = 5, dispersion = 0.2, muImported = 1) {
   outputDf <- data.frame()
   nRep <- length(popSizes)
   for (al in allee) {
     rep <- 1
     while (rep <= nRep) {
       N <- popSizes[rep]
-      sim <- SIR_Allee(I0=10, betaMax=0.8, gammaMax=3 , p=p_se,
-                                   durSim=150,  migration=1, dispersion=0.2,
+      sim <- SIR_Allee(I0=10, betaMax=betaMax, gammaMax=gammaMax, p=p_se,
+                                   durSim=150,  migration=muImported,
+                                   dispersion=dispersion,
                                    I50=I50, Nsus=N, Allee = al)
       sim <- dplyr::mutate(sim, cumI = cumsum(newI),
                            cumImported = cumsum(Imported),
@@ -112,6 +121,7 @@ fit_segmented <- function(cumI) {
     if (length(slopeVals) <= 2) {
       slopeVals <- c(slopeVals[1:2], NA)
     } else {
+      # put final slope instead of difference in slopes
       slopeVals <- slopeVals[1:3]
       slopeVals[3] <- slopeVals[2] + slopeVals[3]
     }
@@ -134,7 +144,14 @@ fit_segmented <- function(cumI) {
 
 #### Run simulations and plot data ######
 allee <- c(TRUE, FALSE)
-simulations <- SIR_generator(p_se = p_se, allee = allee, popSizes = popSizes, I50 = I50)
+simulations <- SIR_generator(p_se = p_se,
+                             betaMax = betaMax,
+                             gammaMax = gammaMax,
+                             dispersion = beta_dispersion,
+                             muImported = muImported,
+                             allee = allee,
+                             popSizes = popSizes,
+                             I50 = I50)
 
 fitCoefs <- group_by(simulations, allee, rep, p, Population) %>% 
   dplyr::summarise(., coefs = list(fit_segmented(cumI))) %>%
