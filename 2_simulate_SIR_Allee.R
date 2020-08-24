@@ -11,15 +11,15 @@ library(gridExtra)
 # simulation parameters
 
 set.seed(2691)
-nRep <- 500
+nRep <- 1000
 minI <- 10
 maxI <- 1000
 popSizeStats <- c(mean = 5.2, sd = 0.5)
 # epidemic values
 p_se <- 0.8 # 1 es sin subexponencial
 I50 <- 20
-betaMax <- 1.4
-gammaMax <- 5
+betaMax <- 0.5
+gammaMax <- 3
 # spread values
 beta_dispersion <- 0.2
 muImported <- 1
@@ -89,7 +89,7 @@ SIR_generator <- function(p_se, allee, popSizes, I50, betaMax = 1.4,
     while (rep <= nRep) {
       N <- popSizes[rep]
       sim <- SIR_Allee(I0=10, betaMax=betaMax, gammaMax=gammaMax, p=p_se,
-                                   durSim=150,  migration=muImported,
+                                   durSim=200,  migration=muImported,
                                    dispersion=dispersion,
                                    I50=I50, Nsus=N, Allee = al)
       sim <- dplyr::mutate(sim, cumI = cumsum(newI),
@@ -115,7 +115,15 @@ fit_segmented <- function(cumI) {
     cumI <- log10(cumI)
     #t <- log10(c(1:length(cumI)))
     t <- log10(c(1:length(cumI)))
-    fit <- segmented(lm(cumI ~ t), seg.Z = ~t, npsi = 1)
+    if.false <- F
+    #sometime segmented returns an error, if case, run again
+    while(if.false == F){
+      tryCatch({
+        fit <- segmented(lm(cumI ~ t), seg.Z = ~t, npsi = 1)
+        if.false <- T
+      }, error = function(e){
+      }, finally = {})
+    }
     cfs <- summary(fit)
     slopeVals <- cfs$coefficients[,1]
     if (length(slopeVals) <= 2) {
@@ -161,8 +169,6 @@ fitCoefs <- group_by(simulations, allee, rep, p, Population) %>%
                 angle = atan(abs((slopeF - slopeI)/(1-slopeF*slopeI))),
                 Ithreshold = intercept + slopeI*time.threshold)
 
-#saveRDS(simulations, "./generated_data/SIR_dynamics_simulation.RDS") 
-#saveRDS(fitCoefs, "./generated_data/SIR_dynamics_fit.RDS")
 saveRDS(simulations, "./generated_data/SIR_dynamics_simulation.RDS") 
 saveRDS(fitCoefs, "./generated_data/SIR_dynamics_fit.RDS")
 

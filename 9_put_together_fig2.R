@@ -13,6 +13,6 @@ fig2 <- ggarrange(dynamicsPlots$countiesDyn,
           widths = c(4,3),
           labels = "auto")
 
-ggsave(fig2, file="./plots/fig2.pdf", width=14, height=9)
+ggsave(fig2, file="./plots/fig2.pdf", width=14, height=9, units = "in")
 #ggsave(fig2, file="fig2.png",width=14,height=9)
 

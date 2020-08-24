@@ -15,6 +15,7 @@ dynamicsData <- readRDS("./generated_data/SIR_dynamics_simulation.RDS") %>%
 dynamicsFit <- readRDS("./generated_data/SIR_dynamics_fit.RDS") %>%
   as_tibble(.)
 
+source("./1_Allee_phase_space.R")
 
 ##################################
 #### scatter plot of initial slope and final slope for simulations
@@ -79,8 +80,15 @@ plotsDynNonAllee <- dplyr::filter(simulationsFit,
 dynsPlots <- grid.arrange(plotsDynAllee, plotsDynNonAllee, ncol=2,
                           left = "Cumulative infected")
 
-ggsave("./plots/simDynamics.pdf", dynsPlots, width = 18, height = 11, units = "cm")
+ggsave("./plots/simDynamics.pdf", dynsPlots, width = 18, height = 11, units = "in")
 
+##############################
+######## make figure 1 #######
+##############################
+
+fig1 <- ggarrange(allee1D, plotGrid, dynsPlots, nrow = 1, widths = c(3, 3, 3),
+                  labels = "auto")
+ggsave("./plots/fig1.pdf", fig1, width = 14, height = 5, units = "in")
 
 ################
 # Plot extended sample of simulation dynamics for supplementary
@@ -128,5 +136,5 @@ dynsPlotsSupp <- grid.arrange(plotsDynAlleeSupp, plotsDynNonAlleeSupp, ncol=2,
                           left = "Cumulative infected")
 
 ggsave("./plots/simDynamicsSupp.pdf", dynsPlotsSupp, width = 18, height = 11,
-       units = "cm")
+       units = "in")
 

@@ -148,7 +148,7 @@ plotAll <- ggarrange(plotsCounties, plotsCountries, nrow = 2)
 saveRDS(list(countiesDyn = plotsCounties, countriesDyn = plotsCountries),
         "./generated_data/data_dynamics_plots.Rds")
 
-ggsave(plotAll, file=fileAllDyns, width=5.5, height= 9)
+ggsave(plotAll, file=fileAllDyns, width=5.5, height= 9, units = "in")
 #ggsave(plot_condados_paises, file="fig_2_trayectorias.png",width=5.5,height=4)
 
 
@@ -194,7 +194,7 @@ for (nc in 1:nChunks) {
 
   fileName <- paste("./plots/S3_", as.character(nc), "all_counties_dyn.pdf", sep = "")
   ggsave(fileName, plotsCountiesSupp, width = 22,
-         height = chunkRows*2.5, units = "cm", limitsize = FALSE)
+         height = chunkRows*2.5, units = "in", limitsize = FALSE)
 }
 
 #plot
@@ -237,6 +237,6 @@ for (nc in 1:nChunks) {
 
   fileName <- paste("./plots/S3_", as.character(nc), "all_countries_dyn.pdf", sep = "")
   ggsave(fileName, plotsCountriesSupp, width = 20,
-         height = chunkRows*2.2, units = "cm", limitsize = FALSE)
+         height = chunkRows*2.2, units = "in", limitsize = FALSE)
 }
 
