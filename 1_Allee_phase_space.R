@@ -17,6 +17,7 @@ library(reshape)
 library(dplyr)
 library(gridExtra)
 library(cowplot)
+library(gtable)
 
 #########
 # Basic model functions
@@ -258,8 +259,6 @@ plotGrid <- grid.arrange(legend,
 
 ggsave("./plots/phase_space.pdf", plotGrid, width = 15, height = 13, units = "cm")
 
-
-
 ########################
 # plot 1d phase space
 ########################
@@ -328,9 +327,6 @@ allee1D <- ggplot(rdf, aes(x = Infected, y = R, color = model)) +
   theme_classic() +scale_x_continuous(labels = c(0,.25,.5,.75,1)) + 
   theme(legend.position = c(.7,.7),text=element_text(size=12)) 
 
-
-allee1D 
+allee1D <- print(allee1D)
 ggsave("./plots/allee1D.pdf", allee1D, width = 15, height = 9, units = "cm")
-#ggsave("allee1D.png", allee1D, width = 15, height = 9, units = "cm")
-
 
