@@ -96,7 +96,7 @@ plot_slopes$sp <- simFit %>%
   ylim(ylims) +
 #  labs(x="log10(1+slope before breakout point)",y="log10(1+slope after/slope before)")
   labs(x=expression(paste(Log10, "(", 1+mu[1], ")")),
-       y=expression(paste(Log10, "(", 1+frac(mu[1],mu[2]), ")"))) 
+       y=expression(paste(Log10, "(", 1+frac(mu[2],mu[1]), ")"))) 
 
 
 plot_slopes$sp$labels$colour=""
