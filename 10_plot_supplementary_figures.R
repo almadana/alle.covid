@@ -99,7 +99,7 @@ for (dataType in names(dataFits)) {
                    slopeI_Pop_plot, slopeF_Pop_plot, breakPoint_Pop_plot,
                    widths = c(4,3), labels = "auto")
 
-  ggsave(figureSupp4, file = fileName, width = 14, height = 9)
+  ggsave(figureSupp4, file = fileName, width = 14, height = 9, units = "in")
 }
 
 
@@ -179,10 +179,10 @@ plot_slopes_s6b <- print(plot_slopes_s6b)
 
 
 #### put histograms and density plots together
-figS6 <- ggarrange(figS6a, "./plots/S6_weight_evidence_sims.pdf",
+figS6 <- ggarrange(figS6a, plot_slopes_s6b,
                    legend = "top",labels = "auto")
 
-ggsave(fig26, file = plotName, width = 8, height = 4)
+ggsave(figS6, file = "./plots/S6_weight_evidence_sims.pdf", width = 8, height = 4, units = "in")
 #ggsave(fig26,file="figs6.png",width=8,height=4)
 
 
@@ -223,6 +223,6 @@ figWeightEvid <- ggarrange(dataEvidPlot$counties, dataEvidPlot$countries,
                            labels = "auto", nrow = 1)
 
 ggsave(figWeightEvid, file = "./plots/S6_weight_evidence_data.pdf",
-       width = 8, height = 4)
+       width = 8, height = 4, units = "in")
 
 

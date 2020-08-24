@@ -85,6 +85,6 @@ plot_slopes$sp <- plot_slopes$sp + guides(alpha="none",shape="none",colour="none
 plot_slopes <- print(plot_slopes)
 
 saveRDS(list(scatterSlopesCountries = plot_slopes), "./generated_data/countries_scatter_plot.RDS")
-ggsave(plot_slopes, file="fig2_scatter_condados.pdf", width=5, height=4)
+ggsave(plot_slopes, file="fig2_scatter_condados.pdf", width=5, height=4, units =  "in")
 #ggsave(plot_slopes, file="fig2_scatter_condados.png", width=5, height=4)
 
