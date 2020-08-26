@@ -15,38 +15,45 @@ dynamicsData <- readRDS("./generated_data/SIR_dynamics_simulation.RDS") %>%
 dynamicsFit <- readRDS("./generated_data/SIR_dynamics_fit.RDS") %>%
   as_tibble(.)
 
-source("./1_Allee_phase_space.R")
+simulationsFit <- merge(dynamicsData, dynamicsFit, by=c("rep","allee"))
+simulationsFit <- simulationsFit %>%
+  mutate(., t_bp = ceiling(10^time.threshold),
+         cumI_fit = ifelse(t<10^time.threshold,
+                           10^(intercept + log10(t)*slopeI),
+                           10^(intercept - log10(t_bp)*slopeF +log10(t_bp-1)*slopeI +log10(t)*slopeF))) %>%
+  as_tibble(.)
 
 ##################################
 #### scatter plot of initial slope and final slope for simulations
 ##################################
-plotChange <- dynamicsFit %>%
-  dplyr::mutate(., allee = c("w/o Allee", "Allee")[as.integer(allee)+1]) %>%
-  ggscatterhist(., x = "slopeI", y = "slopeF", color = "allee",
-                alpha = 0.5, size = 3, margin.plot = "boxplot",
-                palette = c("#b33018", "#14b74b"),
-                ggtheme = theme_bw(), xlab="Initial slope",
-                ylab="Slope after threshold",
-                legend.title = "",
-                margin.params = list(color = "allee"))
+#plotChange <- dynamicsFit %>%
+#  dplyr::mutate(., allee = c("w/o Allee", "Allee")[as.integer(allee)+1]) %>%
+#  ggscatterhist(., x = "slopeI", y = "slopeF", color = "allee",
+#                alpha = 0.5, size = 3, margin.plot = "boxplot",
+#                palette = c("#b33018", "#14b74b"),
+#                ggtheme = theme_bw(), xlab="Initial slope",
+#                ylab="Slope after threshold",
+#                legend.title = "",
+#                margin.params = list(color = "allee"))
 
 
 #############################
 #### Plot the full dynamics of a selection of simulations
 #############################
-sampleRepetitions <- sample(unique(dynamicsData$rep), nPlotDyn)
-sample4 <- sampleRepetitions[order(sampleRepetitions)]
+alleeSampleFit <- dplyr::filter(dynamicsFit, slopeRatio > 1 & allee)
+slopeOrder <- base::order(alleeSampleFit$slopeRatio)
+nSims <- length(slopeOrder)
+ind <- round(c(seq(3, nSims, nSims/(nPlotDyn-1)), nSims-5))
+alleeSamples <- alleeSampleFit$rep[ind]
 
-simulationsFit <- merge(dynamicsData, dynamicsFit, by=c("rep","allee"))
-
-simulationsFit <- simulationsFit %>%
-  mutate(., t_bp = ceiling(10^time.threshold),
-         cumI_fit = ifelse(t<10^time.threshold,
-                           10^(intercept + log10(t)*slopeI),
-                           10^(intercept - log10(t_bp)*slopeF +log10(t_bp-1)*slopeI +log10(t)*slopeF))) 
+nonAlleeSampleFit <- dplyr::filter(dynamicsFit, slopeRatio > 1 & !allee)
+slopeOrder <- base::order(nonAlleeSampleFit$slopeRatio)
+nSims <- length(slopeOrder)
+ind <- round(c(seq(10, nSims, nSims/(nPlotDyn-1)), nSims-10))
+nonAlleeSamples <- nonAlleeSampleFit$rep[ind]
 
 plotsDynAllee <- dplyr::filter(simulationsFit,
-                               allee == TRUE & rep %in% sample4) %>%
+                               allee == TRUE & rep %in% alleeSamples) %>%
   ggplot(., aes(x = t, y = cumI)) +
   geom_point(color = "#b33018") +
   facet_wrap(~rep, scales = "free", ncol = 2) +
@@ -55,14 +62,14 @@ plotsDynAllee <- dplyr::filter(simulationsFit,
   xlab("time (days)") +
   ylab("Cumulative infected") +
   ylab(element_blank()) +
-  ggtitle("with Allee effect") +
+  ggtitle("with NPI") +
   theme_classic() +
   theme(strip.background = element_blank(), strip.text.x = element_blank(),
         plot.title = element_text(hjust = 0.5)) +
   geom_line(aes(x=t,y=cumI_fit),color="pink")
 
 plotsDynNonAllee <- dplyr::filter(simulationsFit,
-                                  allee == FALSE & rep %in% sample4) %>%
+                                  allee == FALSE & rep %in% nonAlleeSamples) %>%
   ggplot(., aes(x = t, y = cumI)) +
   geom_point(color = "#14b74b") +
   facet_wrap(~rep, scales = "free", ncol = 2) +
@@ -71,7 +78,7 @@ plotsDynNonAllee <- dplyr::filter(simulationsFit,
   xlab("time (days)") +
   ylab("Cumulative infected") +
   ylab(element_blank()) +
-  ggtitle("without Allee effect") +
+  ggtitle("without NPI") +
   theme_classic() +
   theme(strip.background = element_blank(), strip.text.x = element_blank(),
         plot.title = element_text(hjust = 0.5)) +
@@ -86,6 +93,7 @@ ggsave("./plots/simDynamics.pdf", dynsPlots, width = 18, height = 11, units = "i
 ######## make figure 1 #######
 ##############################
 
+source("./1_Allee_phase_space.R")
 fig1 <- ggarrange(allee1D, plotGrid, dynsPlots, nrow = 1, widths = c(3, 3, 3),
                   labels = "auto")
 ggsave("./plots/fig1.pdf", fig1, width = 14, height = 5, units = "in")
@@ -109,7 +117,7 @@ plotsDynAlleeSupp <- dplyr::filter(simulationsFit,
   xlab("time (days)") +
   ylab("Cumulative infected") +
   ylab(element_blank()) +
-  ggtitle("with Allee effect") +
+  ggtitle("with NPI") +
   theme_classic() +
   theme(strip.background = element_blank(), strip.text.x = element_blank(),
         plot.title = element_text(hjust = 0.5)) +
@@ -126,7 +134,7 @@ plotsDynNonAlleeSupp <- dplyr::filter(simulationsFit,
   xlab("time (days)") +
   ylab("Cumulative infected") +
   ylab(element_blank()) +
-  ggtitle("without Allee effect") +
+  ggtitle("without NPI") +
   theme_classic() +
   theme(strip.background = element_blank(), strip.text.x = element_blank(),
         plot.title = element_text(hjust = 0.5)) +

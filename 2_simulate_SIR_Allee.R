@@ -13,19 +13,22 @@ library(gridExtra)
 set.seed(2691)
 nRep <- 1000
 minI <- 10
-maxI <- 1000
-popSizeStats <- c(mean = 5.2, sd = 0.5)
+maxI <- 2000
+popSizeStatsCounties <- c(mean = 5.2, sd = 0.5)
+#popSizeStatsCountries <- c(mean = 7.1, sd = 0.5)
 # epidemic values
 p_se <- 0.8 # 1 es sin subexponencial
 I50 <- 20
 betaMax <- 0.5
-gammaMax <- 3
+gammaMax <- 4
 # spread values
 beta_dispersion <- 0.2
 muImported <- 1
 #p_se=0.8 # subexponencial
 # sample populations
-popSizes <- round(10^rnorm(nRep, popSizeStats[1], popSizeStats[2]))
+popSizesCounties <- round(10^rnorm(nRep, popSizeStatsCounties[1], popSizeStatsCounties[2]))
+#popSizesCountries <- round(10^rnorm(nRep, popSizeStatsCountries[1], popSizeStatsCountries[2]))
+minEpidemicLength <- 10
 
 # SIR simulation with Allee effect
 SIR_Allee <- function(I0, betaMax=1.4, gammaMax=5, p, durSim,
@@ -48,10 +51,12 @@ SIR_Allee <- function(I0, betaMax=1.4, gammaMax=5, p, durSim,
   gamma <- gammaMax
   for(t in 2:durSim){
     if (I[t-1] <= 0) {
-      I[t-1] <- I[t] <- 0
+      I[t-1] <- 0
+      I[t] <- 0
     }
     if(S[t-1] <= 0) {
-      S[t-1] <- S[t] <- 0
+      S[t-1] <- 0 
+      S[t] <- 0
     }
     if (Allee == TRUE) {
       # adjust beta and gamma to infected levels if Allee
@@ -99,7 +104,11 @@ SIR_generator <- function(p_se, allee, popSizes, I50, betaMax = 1.4,
         dplyr::filter(., cumI > minI & cumI < maxI)
       if (nrow(sim) > 0) {
         sim$t <- c(1:nrow(sim))
-        if (nrow(sim) > 10) {
+        # crop up to day with largest daily count
+        #dailyCases <- diff(sim$cumI)
+        #maxDay <- which(dailyCases == max(dailyCases))[1]
+        #sim <- sim[1:maxDay,]
+        if (nrow(sim) > minEpidemicLength) {
           outputDf <- rbind(outputDf, sim)
           rep <- rep + 1
         }
@@ -117,15 +126,23 @@ fit_segmented <- function(cumI) {
     t <- log10(c(1:length(cumI)))
     if.false <- F
     #sometime segmented returns an error, if case, run again
+    tries <- 1
     while(if.false == F){
       tryCatch({
         fit <- segmented(lm(cumI ~ t), seg.Z = ~t, npsi = 1)
+        print(tries)
         if.false <- T
-      }, error = function(e){
-      }, finally = {})
+      }, error = function(e){print(tries)
+      }, finally = {print(tries)})
+      tries <- tries + 1
+      # if it can't fit the simulation, set everything to NA
+      if (tries > 100) {
+        fit <- lm(cumI ~ t)
+      }
     }
     cfs <- summary(fit)
     slopeVals <- cfs$coefficients[,1]
+    breakingPoint <- ifelse(is.null(cfs$psi), NA, cfs$psi[2])
     if (length(slopeVals) <= 2) {
       slopeVals <- c(slopeVals[1:2], NA)
     } else {
@@ -133,12 +150,9 @@ fit_segmented <- function(cumI) {
       slopeVals <- slopeVals[1:3]
       slopeVals[3] <- slopeVals[2] + slopeVals[3]
     }
-    breakingPoint <- ifelse(is.null(cfs$psi), NA, cfs$psi[2])
-    
     ff0 <- lm(cumI~ t)
     aic <- AIC(ff0,fit)[,2]
     wi <- exp(-0.5*(aic-min(aic)))/sum(exp(-0.5*(aic-min(aic))))
-    
     # check if breaking point is significant by fitting lm
     #lmFit <- lm(cumI ~ t)
     #pValue <- davies.test(lmFit)$p.value
@@ -150,18 +164,18 @@ fit_segmented <- function(cumI) {
   return(coefficients)
 }
 
-#### Run simulations and plot data ######
+#### Run simulations and fit segmented for countie sims######
 allee <- c(TRUE, FALSE)
-simulations <- SIR_generator(p_se = p_se,
+simulationsCounties <- SIR_generator(p_se = p_se,
                              betaMax = betaMax,
                              gammaMax = gammaMax,
                              dispersion = beta_dispersion,
                              muImported = muImported,
                              allee = allee,
-                             popSizes = popSizes,
+                             popSizes = popSizesCounties,
                              I50 = I50)
 
-fitCoefs <- group_by(simulations, allee, rep, p, Population) %>% 
+fitCoefsCounties <- group_by(simulationsCounties, allee, rep, p, Population) %>% 
   dplyr::summarise(., coefs = list(fit_segmented(cumI))) %>%
   ungroup(.) %>% 
   tidyr::unnest_wider(., coefs) %>% 
@@ -169,7 +183,29 @@ fitCoefs <- group_by(simulations, allee, rep, p, Population) %>%
                 angle = atan(abs((slopeF - slopeI)/(1-slopeF*slopeI))),
                 Ithreshold = intercept + slopeI*time.threshold)
 
-saveRDS(simulations, "./generated_data/SIR_dynamics_simulation.RDS") 
-saveRDS(fitCoefs, "./generated_data/SIR_dynamics_fit.RDS")
+saveRDS(simulationsCounties, "./generated_data/SIR_dynamics_simulation.RDS") 
+saveRDS(fitCoefsCounties, "./generated_data/SIR_dynamics_fit.RDS")
 
-
+##### Run simulations and fit segmented for countrie sims######
+#allee <- c(TRUE, FALSE)
+#simulationsCountries <- SIR_generator(p_se = p_se,
+#                             betaMax = betaMax,
+#                             gammaMax = gammaMax,
+#                             dispersion = beta_dispersion,
+#                             muImported = muImported,
+#                             allee = allee,
+#                             popSizes = popSizesCountries,
+#                             I50 = I50)
+#
+#fitCoefsCountries <- group_by(simulations, allee, rep, p, Population) %>% 
+#  dplyr::summarise(., coefs = list(fit_segmented(cumI))) %>%
+#  ungroup(.) %>% 
+#  tidyr::unnest_wider(., coefs) %>% 
+#  dplyr::mutate(., slopeRatio = slopeF/slopeI, resta = slopeF - slopeI,
+#                angle = atan(abs((slopeF - slopeI)/(1-slopeF*slopeI))),
+#                Ithreshold = intercept + slopeI*time.threshold)
+#
+#saveRDS(simulationsCountries, "./generated_data/SIR_dynamics_simulationCountries.RDS") 
+#saveRDS(fitCoefsCountries, "./generated_data/SIR_dynamics_fitCountries.RDS")
+#
+#

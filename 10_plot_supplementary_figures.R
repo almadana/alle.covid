@@ -5,7 +5,7 @@ library(dplyr)
 
 # load data
 simFit <- readRDS("./generated_data/SIR_dynamics_fit.RDS") %>%
-  dplyr::mutate(allee = factor(ifelse(allee,"with Allee effect","without Allee effect")))
+  dplyr::mutate(allee = factor(ifelse(allee,"with NPI","without NPI")))
 
 countriesFit <- readRDS("./generated_data/countriesFit.RDS") %>%
   dplyr::as_tibble(.) 
@@ -126,7 +126,7 @@ figS6a <- simFit %>%
 #### a plot of log10(1 + slopeRatio) vs log10(1 + slopeI) is done
 
 xlims=c(0,.45)
-ylims= c(-.01,2.5)
+ylims= c(-.01,2)
 
 plot_slopes_s6b <- simFit %>% 
   dplyr::mutate_at(., vars(contains("slope"), "slopeRatio"),
@@ -154,7 +154,7 @@ plot_slopes_s6b <- simFit %>%
 plot_slopes_s6b$sp <- simFit %>%
   dplyr::filter(slopeRatio>1) %>%
   ggplot(., aes(group = allee, fill = allee, x = log10(1+slopeI), y = log10(1+slopeRatio))) +
-  stat_density_2d(geom="polygon", aes(fill=allee, alpha=..level..), contour=T, bins=50) + 
+  stat_density_2d(geom="polygon", aes(fill=allee, alpha=..level..), contour=T, bins=14) + 
   scale_fill_manual(values = c("#b33018","#14b74b")) +
   theme_classic() +
   scale_color_manual(values=c("#b33018","#14b74b"))+
@@ -164,7 +164,7 @@ plot_slopes_s6b$sp <- simFit %>%
   ylim(ylims) +
   #  labs(x="log10(1+slope before breakout point)",y="log10(1+slope after/slope before)")
   labs(x=expression(paste(Log10, "(", 1+mu[1], ")")),
-       y=expression(paste(Log10, "(", 1+frac(mu[1],mu[2]), ")"))) 
+       y=expression(paste(Log10, "(", 1+frac(mu[2],mu[1]), ")"))) 
 
 plot_slopes_s6b$sp$labels$colour=""
 plot_slopes_s6b$sp$labels$fill=""

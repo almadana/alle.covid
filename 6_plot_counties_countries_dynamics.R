@@ -7,6 +7,7 @@ fileAllDyns <- "./plots/data_dynamics.pdf"
 
 fileSuppDyns <- "./plots/all_counties_dyn.pdf"
 
+nExamples <- 8 # cuantos de cada
 ######################################
 ####### Plot counties dynamics #######
 ######################################
@@ -46,12 +47,13 @@ countiesAll <- countiesAll %>%
                          log10(t_bp-1) * slopeI + log10(t) * slopeF))) 
 
 # get counties with the least and most pronounced breakpoints
-nExamples <- 4 # cuantos de cada
 increasingRatio <- dplyr::filter(countiesFit, slopeRatio > 1)
 slopeOrder <- base::order(increasingRatio$slopeRatio)
 nCounties <- length(slopeOrder)
-examplesIndices <- slopeOrder[c(1:nExamples, (nCounties-nExamples+1):nCounties)]
-examplesId <- as.character(countiesFit$Id[examplesIndices])
+#ind <- round(c(seq(1, nCounties, nCounties/(nExamples-1)), nCounties))
+ind <- c(seq(1, nExamples/2, 1), seq(nCounties-nExamples/2+1, nCounties, 1))
+examplesIndices <- slopeOrder[ind]
+examplesId <- as.character(increasingRatio$Id[examplesIndices])
 
 plotsCounties <- dplyr::filter(countiesAll, Id %in% examplesId) %>%
   ggplot(., aes(x = t, y = cases)) +
@@ -73,13 +75,14 @@ plotsCounties <- dplyr::filter(countiesAll, Id %in% examplesId) %>%
 
 plotsCounties
 
-
 ######################################
 ####### Plot countries dynamics #######
 ######################################
 
 countriesFit <- readRDS("./generated_data/countriesFit.RDS") %>%
-  dplyr::mutate(., slopeRatio = slopeF / slopeI) %>%
+  dplyr::mutate(., slopeRatio = slopeF / slopeI, Country = as.character(Country)) %>%
+  dplyr::mutate(., Country = ifelse(Country %in% "Korea, South","South Korea",
+                                   Country)) %>%
   as_tibble(.)
 
 fittedCountries <- as.character(countriesFit$Id)
@@ -109,20 +112,22 @@ countriesAll <- countriesAll %>%
    cumI_fit = ifelse(t<10^time.threshold,
                      10^(intercept + log10(t)*slopeI),
                      10^(intercept - log10(t_bp)*slopeF +
-                         log10(t_bp-1) * slopeI + log10(t) * slopeF))) %>%
+                         log10(t_bp-1) * slopeI + log10(t) * slopeF)),
+                Country = as.character(Country)) %>%
   as_tibble(.)
 
 
 # select examples to show
-nExamples <- 4 # cuantos de cada
 increasingRatio <- dplyr::filter(countriesFit, slopeRatio > 1)
 slopeOrder <- base::order(increasingRatio$slopeRatio)
 nCountries <- length(slopeOrder)
-examplesIndices <- slopeOrder[c(1:nExamples, (nCountries-nExamples+1):nCountries)]
-examplesId <- as.character(countriesFit$Id[examplesIndices])
+#ind <- round(c(seq(1, nCountries, nCountries/(nExamples-1)), nCountries))
+ind <- c(seq(1, nExamples/2, 1), seq(nCountries-nExamples/2+1, nCountries, 1))
+examplesIndices <- slopeOrder[ind]
+examplesId <- as.character(increasingRatio$Country[examplesIndices])
 
 #plot
-plotsCountries <- dplyr::filter(countriesAll, Id %in% examplesId) %>%
+plotsCountries <- dplyr::filter(countriesAll, Country %in% examplesId) %>%
   dplyr::mutate(country = ifelse(Country_Region %in% "Korea, South","South Korea",
                                  Country_Region)) %>% 
   ggplot(., aes(x = t, y = cumI)) +
@@ -204,6 +209,12 @@ plotCols <- 8
 chunkRows <- 10
 chunkPlots <- plotCols * chunkRows
 nChunks <- ceiling(nCountries / chunkPlots)
+
+#fix names
+
+plotsCountriesSupp <- dplyr::filter(countriesAll, Id %in% chunkId) %>%
+  dplyr::mutate(country = ifelse(Country_Region %in% "Korea, South","South Korea",
+                                 Country_Region)) %>% 
 
 for (nc in 1:nChunks) {
   indI <- (nc-1)*chunkPlots+1
