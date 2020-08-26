@@ -2,11 +2,15 @@ library(segmented)
 library(dplyr)
 library(ggplot2)
 
+set.seed(2691)
+
 # Countries Covid data
 countriesCovid <- read.delim("./raw_data/casos.world.264.tab") %>%
+  dplyr::mutate(., Country_Region = as.character(Country_Region),
+                Province_State = as.character(Province_State)) %>%
   as_tibble(.)
 
-minimumCumCases <- 100
+minimumCumCases <- 200
 
 #### Fit the segmented lines to the country data, in log(infected) vs log(time)
 #### and analyze parameters and weight of evidence for breakpoint
@@ -17,6 +21,11 @@ fit_country_segmented <- function(countriesCovid){
   out <- NULL
   #par(mfrow=c(5,5), mar=c(2,2,2,0.5 ))
   for (country in 1:nrow(countriesCovid)){
+    countryName <- countriesCovid$Country_Region[country]
+    regionName <- countriesCovid$Province_State[country]
+    if (nchar(regionName) != 0) {
+      countryName <- paste(regionName, countryName, sep = ", ")
+    }
     cumCases <- as.numeric(countriesCovid[country, 18:nCols]) #al 10 de julio
     # crop to beggining of epidemic
     epiInd <- which(cumCases >= 1)
@@ -46,12 +55,8 @@ fit_country_segmented <- function(countriesCovid){
         # Estimate the number of active cases at the break point
         beforeCut <- which(logTime<fit$psi[2]) 
         if(length(beforeCut)>9) {
-          # DH: ¿que hace esto?
           # If the time series before the break is larger than 10 days retain
           # the total infected 10 days before...
-          # NOTA: Acá se estaba tomando la resta de los logaritmos como el
-          # logaritmo de la resta me parece
-          # I.active <- logInfect[max(beforeCut)] - logInfect[max(beforeCut)-9] # linea vieja
           I.active <- croppedDyn[max(beforeCut)] - croppedDyn[max(beforeCut)-9] # linea vieja
         } else if (length(beforeCut)==0) {
           I.active <- NA
@@ -65,7 +70,6 @@ fit_country_segmented <- function(countriesCovid){
           timeThreshold <- fit$psi[2]
         }
         countryId <- countriesCovid[country, "UID"]
-        countryName <- countriesCovid[country, "Country_Region"]
         countryVec <- data.frame(countryId, countryName, N.country[[1]], max(cumCases),
                        paramsSeg[1], paramsSeg[2], paramsSeg[3],
                        timeThreshold, wi[2],

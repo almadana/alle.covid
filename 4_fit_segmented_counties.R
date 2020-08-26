@@ -3,6 +3,9 @@ library(segmented)
 library(dplyr)
 library(ggplot2)
 
+set.seed(2691)
+minimumCases <- 200
+
 # US counties COVID data
 countiesCovid <- read.csv("./raw_data/us-counties.csv", colClasses = c("fips" = "character")) %>%
   as_tibble(.) %>%
@@ -38,7 +41,7 @@ fit_county_segmented <- function(countyPop, countiesCovid){
       maxDay <- which(dailyCases == max(dailyCases))[1]
       dynamicsLength <- maxDay - initDay + 1
       # original filter: if (length(14:id) > 15 & min(cumCases[14:id])>10 & max(cumCases)>200) {
-      if (!is.na(day10) & dynamicsLength >= 15 & max(cumCases)>200) {
+      if (!is.na(day10) & dynamicsLength >= 15 & max(cumCases)>minimumCases) {
         croppedDyn <- cumCases[initDay:maxDay]
         logTime <- I(log10(1:length(croppedDyn)))
         logInfect <- log10(croppedDyn)
@@ -53,12 +56,6 @@ fit_county_segmented <- function(countyPop, countiesCovid){
         # Estimate the number of active cases at the break point
         beforeCut <- which(logTime<fit$psi[2]) 
         if(length(beforeCut)>9) {
-          # DH: ¿que hace esto?
-          # If the time series before the break is larger than 10 days retain
-          # the total infected 10 days before...
-          # NOTA: Acá se estaba tomando la resta de los logaritmos como el
-          # logaritmo de la resta me parece
-          # I.active <- logInfect[max(beforeCut)] - logInfect[max(beforeCut)-9] # linea vieja
           I.active <- croppedDyn[max(beforeCut)] - croppedDyn[max(beforeCut)-9] # linea vieja
         } else if (length(beforeCut)==0) {
           I.active <- NA
@@ -96,7 +93,6 @@ fit_county_segmented <- function(countyPop, countiesCovid){
   rownames(out) <- NULL
   return(out)
 }      
-
 
 ### Fit the counties and save df
 countySegmentedFit <- fit_county_segmented(countyPop = countyPop,
