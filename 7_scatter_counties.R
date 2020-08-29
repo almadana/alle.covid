@@ -40,7 +40,8 @@ countiesFit <- merge(countiesFit, county_short, by = "Id", all.x = T) %>%
   as_tibble(.)
 
 # get counties with the least and most pronounced breakpoints
-increasingRatio <- dplyr::filter(countiesFit, slopeRatio > 1)
+increasingRatio <- dplyr::filter(countiesFit, slopeRatio > 1 &
+                                 Id != "13087")
 slopeOrder <- base::order(increasingRatio$slopeRatio)
 nCounties <- length(slopeOrder)
 #ind <- round(c(seq(1, nCounties, nCounties/(nExamples-1)), nCounties))
@@ -71,10 +72,7 @@ xlims=c(0,.39)
 ylims= c(-.01,2)
 
 plot_slopes <- sim_countiesFit %>%
-  filter(., slopeRatio>1) %>%
   dplyr::mutate_at(vars(contains("slope"),"slopeRatio"), .funs = list("log10"=function(x) log10(1+x))) %>%
-  #filtra a los que no tiene quiebre de pendientes positivo (ratio mayor a uno)
-  filter(slopeRatio>1) %>% 
   ggscatterhist(x="slopeI_log10",y="slopeRatio_log10",
                 #color="bajoUmbral",
                 color="allee",
@@ -93,16 +91,15 @@ plot_slopes <- sim_countiesFit %>%
                 xlim=xlims)
 
 plot_slopes$sp <- simFit %>%
-  filter(slopeRatio>1) %>%
   ggplot(., aes(group=allee, fill=allee, x=log10(1+slopeI), y=log10(1+slopeRatio))) +
   stat_density_2d(geom="polygon", aes(fill=allee, alpha=..level..), contour=T, bins=14) + 
-  geom_point(shape=20, data=(countiesFit %>% filter(slopeRatio>1)), alpha=1,
+  geom_point(shape=20, data=(countiesFit), alpha=1,
              aes(col=allee), size = 0.8) +
   scale_fill_manual(values = c("#FFFFFF","#b33018","#14b74b")) +
   theme_classic() +
   scale_color_manual(values=c("#000080","#b33018","#14b74b"))+
   theme(legend.position = "top") +  
-  geom_abline(slope=0,intercept = log10(2)-.1,linetype="dotted") +
+  geom_abline(slope=0,intercept = log10(2),linetype="dotted") +
   geom_text_repel(data=sim_countiesFit, aes(label=label), size=3) +
   annotate("text", x=0.03, y=log10(2)+0.1, label="equal slopes", size=3) +
   xlim(xlims) +
@@ -125,7 +122,7 @@ plot_slopes <- print(plot_slopes)
 scatterCountiesPlot <- plot_slopes
 
 #saveRDS(list(scatterSlopesCounties = plot_slopes), "./generated_data/counties_scatter_plot.RDS")
-ggsave(plot_slopes, file="fig2_scatter_condados.pdf", width=5, height=4, units = "in")
+ggsave(plot_slopes, file="./plots/fig2_scatter_condados.png", width=5, height=4, units = "in")
 #ggsave(plot_slopes, file="fig2_scatter_condados.png", width=5, height=4)
 
 

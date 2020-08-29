@@ -8,6 +8,7 @@ library(ggpubr)
 library(segmented)
 library(gridExtra)
 
+set.seed(2691)
 nPlotDyn <- 4
 
 dynamicsData <- readRDS("./generated_data/SIR_dynamics_simulation.RDS") %>%
@@ -20,7 +21,7 @@ simulationsFit <- simulationsFit %>%
   mutate(., t_bp = ceiling(10^time.threshold),
          cumI_fit = ifelse(t<10^time.threshold,
                            10^(intercept + log10(t)*slopeI),
-                           10^(intercept - log10(t_bp)*slopeF +log10(t_bp-1)*slopeI +log10(t)*slopeF))) %>%
+                           10^(intercept - log10(t_bp)*slopeF +log10(t_bp)*slopeI +log10(t)*slopeF))) %>%
   as_tibble(.)
 
 ##################################
@@ -94,9 +95,9 @@ ggsave("./plots/simDynamics.pdf", dynsPlots, width = 18, height = 11, units = "i
 ##############################
 
 source("./1_Allee_phase_space.R")
-fig1 <- ggarrange(allee1D, plotGrid, dynsPlots, nrow = 1, widths = c(3, 3, 3),
+fig1 <- ggarrange(allee1D, plotGrid, dynsPlots, nrow = 1, widths = c(2.8, 4, 3.7),
                   labels = "auto")
-ggsave("./plots/fig1.pdf", fig1, width = 14, height = 5, units = "in")
+ggsave("./plots/fig1.png", fig1, width = 11, height = 3.6, units = "in")
 
 ################
 # Plot extended sample of simulation dynamics for supplementary
@@ -143,6 +144,6 @@ plotsDynNonAlleeSupp <- dplyr::filter(simulationsFit,
 dynsPlotsSupp <- grid.arrange(plotsDynAlleeSupp, plotsDynNonAlleeSupp, ncol=2,
                           left = "Cumulative infected")
 
-ggsave("./plots/simDynamicsSupp.pdf", dynsPlotsSupp, width = 18, height = 11,
+ggsave("./plots/simDynamicsSupp.png", dynsPlotsSupp, width = 11, height = 15,
        units = "in")
 
