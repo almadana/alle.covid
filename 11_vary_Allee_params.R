@@ -110,11 +110,15 @@ SIR_generator <- function(p_se, allee, popSizes, I50, betaMax = 1.4,
                                    durSim=200,  migration=muImported,
                                    dispersion=dispersion,
                                    I50=I50, Nsus=N, Allee = al)
-      sim <- dplyr::mutate(sim, cumI = cumsum(newI),
+      sim <- dplyr::mutate(sim, cumI = cumsum(newI + Imported),
                            cumImported = cumsum(Imported),
                            rep = rep, allee = al,
                            Population = N) %>%
         dplyr::filter(., cumI > minI & cumI < maxI)
+      # crop up to day with largest daily count
+      dailyCases <- diff(sim$cumI)
+      maxDay <- which(dailyCases == max(dailyCases))[1]
+      sim <- sim[1:maxDay,]
       if (nrow(sim) > 0) {
         sim$t <- c(1:nrow(sim))
         # crop up to day with largest daily count
@@ -151,6 +155,7 @@ fit_segmented <- function(cumI) {
       # if it can't fit the simulation, set everything to NA
       if (tries > 100) {
         fit <- lm(cumI ~ t)
+        if.false <- T
       }
     }
     cfs <- summary(fit)
@@ -213,30 +218,7 @@ for (sim in c(1:nrow(simsDf))) {
   allSims <- rbind(allSims, simulationsCounties)
   allFits <- rbind(allFits, fitCoefsCounties)
 
-  saveRDS(allSims, "./generated_data/SIR_dynamics_simulation_parameter_exploration.RDS") 
-  saveRDS(allFits, "./generated_data/SIR_dynamics_fit_parameter_exploration.RDS")
+  saveRDS(allSims, "./generated_data/SIR_dynamics_simulation_parameter_exploration2.RDS") 
+  saveRDS(allFits, "./generated_data/SIR_dynamics_fit_parameter_exploration2.RDS")
 }
 
-##### Run simulations and fit segmented for countrie sims######
-#allee <- c(TRUE, FALSE)
-#simulationsCountries <- SIR_generator(p_se = p_se,
-#                             betaMax = betaMax,
-#                             gammaMax = gammaMax,
-#                             dispersion = beta_dispersion,
-#                             muImported = muImported,
-#                             allee = allee,
-#                             popSizes = popSizesCountries,
-#                             I50 = I50)
-#
-#fitCoefsCountries <- group_by(simulations, allee, rep, p, Population) %>% 
-#  dplyr::summarise(., coefs = list(fit_segmented(cumI))) %>%
-#  ungroup(.) %>% 
-#  tidyr::unnest_wider(., coefs) %>% 
-#  dplyr::mutate(., slopeRatio = slopeF/slopeI, resta = slopeF - slopeI,
-#                angle = atan(abs((slopeF - slopeI)/(1-slopeF*slopeI))),
-#                Ithreshold = intercept + slopeI*time.threshold)
-#
-#saveRDS(simulationsCountries, "./generated_data/SIR_dynamics_simulationCountries.RDS") 
-#saveRDS(fitCoefsCountries, "./generated_data/SIR_dynamics_fitCountries.RDS")
-#
-#

@@ -48,8 +48,8 @@ calculate_Rt <- function(maxDetected, maxLinks, Infected, pCall, NDailyCalls,
   pContact <- 1 - (1-pCall)^(NDailyCalls/NDetected)
   # Number of expected social links for detected individuals
   detectedLinks <- expected_links(maxLinks, pContact)
-  # Probability that an individual is susceptible
-  pSusceptible<- (Npop - Infected) / Npop 
+  # Probability that a contact of an infected is susceptible
+  pSusceptible<- (Npop - Infected - 1) / (Npop - 1)
   # Rt calculation
   Rt <- pSusceptible * pInfection * (pDetected*detectedLinks + (1-pDetected)*maxLinks)
   return(Rt)
@@ -157,14 +157,14 @@ enlongate_matrix <- function(inputMatrix, varNames, infectedSubsample) {
 }
 
 # plot 2D
-plot_phase_space <- function(inputDF, xName, reverse = FALSE){
+plot_phase_space <- function(inputDF, reverse = FALSE){
   spacePlot <- ggplot(inputDF, aes(x = measure, y = Infected, fill = Rt_exp)) +
     geom_raster() +
     scale_fill_manual(values = c("#243faf", "#fa3d1b"),
-                      name = element_blank(), labels = c("Rt < 1 (Containment)",
-                                                         "Rt > 1 (Outbreak)")) +
-    scale_x_continuous(name = xName, expand = c(0,0)) +
-    scale_y_continuous(name = "Proportion infected", expand = c(0,0),limits = c(0,.8)) +
+                      name = element_blank(), labels = c("Re < 1 (Containment)",
+                                                         "Re > 1 (Outbreak)")) +
+    scale_y_continuous(name = "Proportion infected", expand = c(0,0),
+                       limits = c(0,.8), breaks = c(0, 0.4, 0.8)) +
     theme_bw()
   if (reverse) {
     spacePlot <- spacePlot +
@@ -200,10 +200,15 @@ detectedLong <- Rt_detected(maxLinks = maxLinks, maxDetected = maxDetected_Vec,
                         NDailyCalls = NDailyCalls, Npop = Npop,
                         propInfectedMax = propInfectedMax) %>%
                 enlongate_matrix(., c("Infected", "maxDetected"), infectedSubsample)
-detectedPlot <- dplyr::rename(detectedLong, measure = maxDetected) %>% mutate(Infected =Infected/ Npop) %>% 
-  plot_phase_space(., "Detection capacity") +
+
+detectedPlot <- dplyr::rename(detectedLong, measure = maxDetected) %>%
+  dplyr::mutate(Infected =Infected/ Npop) %>% 
+  plot_phase_space(.) +
   ggtitle("Contact tracing capacity") +
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"),
+        axis.title.x = element_text(size = 10)) +
+  scale_x_continuous(breaks = c(0, 400, 800), name = "Detection capacity",
+                     expand = c(0,0))
 
 # Space plot for maximum number of calls (speed of detection)
 callsLong <- Rt_calls(maxLinks = maxLinks, maxDetected = maxDetected,
@@ -211,10 +216,13 @@ callsLong <- Rt_calls(maxLinks = maxLinks, maxDetected = maxDetected,
                         NDailyCalls = dailyCalls_Vec, Npop = Npop,
                         propInfectedMax = propInfectedMax) %>%
             enlongate_matrix(., c("Infected", "maxCalls"), infectedSubsample)
-callsPlot <- dplyr::rename(callsLong, measure = maxCalls) %>% mutate(Infected =Infected/ Npop) %>% 
-  plot_phase_space(., "Maximum daily calls") +
+callsPlot <- dplyr::rename(callsLong, measure = maxCalls) %>%
+  dplyr::mutate(Infected =Infected/ Npop) %>% 
+  plot_phase_space(.) +
   ggtitle("Contact tracing velocity") +
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold")) +
+  scale_x_continuous(breaks = c(0, 500, 1000), name =  "Maximum daily calls",
+                     expand = c(0,0))
 
 # Space plot for maximum number of links
 linksLong <- Rt_links(maxLinks = maxLinks_Vec, maxDetected = maxDetected,
@@ -222,10 +230,13 @@ linksLong <- Rt_links(maxLinks = maxLinks_Vec, maxDetected = maxDetected,
                         NDailyCalls = NDailyCalls, Npop = Npop,
                         propInfectedMax = propInfectedMax) %>% 
             enlongate_matrix(., c("Infected", "maxLinks"), infectedSubsample)
-linksPlot <- dplyr::rename(linksLong, measure = maxLinks) %>% mutate(Infected =Infected/ Npop) %>% 
-  plot_phase_space(., "Maximum social links") +
+linksPlot <- dplyr::rename(linksLong, measure = maxLinks) %>%
+  dplyr::mutate(Infected =Infected/ Npop) %>% 
+  plot_phase_space(.) +
   ggtitle("Social distancing") +
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold")) +
+  scale_x_continuous(breaks = c(10, 20), name =  "Maximum social links",
+                     expand = c(0,0))
 
 # Space plot for pInfection 
 infectionLong <- Rt_pInfection(maxLinks = maxLinks, maxDetected = maxDetected,
@@ -234,9 +245,11 @@ infectionLong <- Rt_pInfection(maxLinks = maxLinks, maxDetected = maxDetected,
                         propInfectedMax = propInfectedMax) %>%
             enlongate_matrix(., c("Infected", "pInfection"), infectedSubsample)
 infectionPlot <- dplyr::rename(infectionLong, measure = pInfection) %>%mutate(Infected =Infected/ Npop) %>% 
-  plot_phase_space(., "Contact infectiousness") +
+  plot_phase_space(.) +
   ggtitle("Hygiene measures") +
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold")) +
+  scale_x_continuous(breaks = c(0.15, 0.25), name = "Contact infectiousness",
+                     expand = c(0,0))
 
 
 
@@ -257,7 +270,7 @@ plotGrid <- grid.arrange(legend,
                      heights=c(1, 10))
 
 
-ggsave("./plots/phase_space.pdf", plotGrid, width = 15, height = 13, units = "cm")
+ggsave("./plots/phase_space.png", plotGrid, width = 15, height = 13, units = "cm")
 
 ########################
 # plot 1d phase space
@@ -320,13 +333,14 @@ allee1D <- ggplot(rdf, aes(x = Infected, y = R, color = model)) +
                size = 1.1) +
   #geom_text(aes(x = point1+50, y = 0.7), label = thresholdText, color = "black",
             #hjust = "inward", family = "sans", fontface = "plain", ) +
-  annotate("text",x=point1+50,y=0.7,label=thresholdText,size=4,hjust="inward") +
-  annotate("text",x=point2,y=0.7,label=immunityText,size=4,hjust="inward") +
+  annotate("text", x=point1+50, y=0.7, label=thresholdText, size=3.2, hjust="inward") +
+  annotate("text", x=point2, y=0.7, label=immunityText, size=3.2, hjust="inward") +
 #  geom_text(aes(x = point2, y = 0.7), label = immunityText, color = "black",
  #           hjust = "inward", family = "sans", fontface = "plain" ) +
-  theme_classic() +scale_x_continuous(labels = c(0,.25,.5,.75,1)) + 
-  theme(legend.position = c(.7,.7),text=element_text(size=12)) 
+  theme_classic() +
+  scale_x_continuous(breaks = c(0, 1000, 2000), labels = c(0, 0.5, 1)) + 
+  theme(legend.position = c(.7,.8),text=element_text(size=12)) 
 
 allee1D <- print(allee1D)
-ggsave("./plots/allee1D.pdf", allee1D, width = 15, height = 9, units = "cm")
+ggsave("./plots/allee1D.png", allee1D, width = 15, height = 9, units = "cm")
 

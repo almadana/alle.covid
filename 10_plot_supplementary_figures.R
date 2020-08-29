@@ -22,7 +22,7 @@ dataFits <- list(counties = countiesFit, countries = countriesFit)
 
 for (dataType in names(dataFits)) {
   fitData <- dataFits[[dataType]]
-  fileName <- paste("./plots/S4_", dataType, "_fit_properties.pdf", sep = "")
+  fileName <- paste("./plots/S4_", dataType, "_fit_properties.png", sep = "")
 
   slopeI_hist <- ggplot(fitData, aes(slopeI)) +
     geom_histogram(color = "gray", fill="#4020ab") +
@@ -99,7 +99,7 @@ for (dataType in names(dataFits)) {
                    slopeI_Pop_plot, slopeF_Pop_plot, breakPoint_Pop_plot,
                    widths = c(4,3), labels = "auto")
 
-  ggsave(figureSupp4, file = fileName, width = 14, height = 9, units = "in")
+  ggsave(figureSupp4, file = fileName, width = 11, height = 7, units = "in")
 }
 
 
@@ -110,6 +110,7 @@ for (dataType in names(dataFits)) {
 # Plot histogram of the weight of evidence for breakpoint on simulations
 # with and without allee
 figS6a <- simFit %>%
+  dplyr::filter(slopeRatio > 1) %>%
   ggplot(., aes(x = weighted.evidence, fill = allee))+
   geom_histogram() +
   facet_grid(~allee)+
@@ -133,7 +134,7 @@ plot_slopes_s6b <- simFit %>%
                    .funs = list("log10"=function(x) log10(1+x))) %>%
   # keep only those with positive slope ratio
   dplyr::filter(., !(is.nan(slopeRatio) | is.na(slopeRatio))) %>%
-  dplyr::filter(slopeRatio > 1) %>% 
+#  dplyr::filter(slopeRatio > 1) %>% 
   ggscatterhist(x="slopeI_log10", y="slopeRatio_log10",
                 #color="bajoUmbral",
                 color="allee",
@@ -152,14 +153,14 @@ plot_slopes_s6b <- simFit %>%
 
 
 plot_slopes_s6b$sp <- simFit %>%
-  dplyr::filter(slopeRatio>1) %>%
+  #dplyr::filter(slopeRatio>1) %>%
   ggplot(., aes(group = allee, fill = allee, x = log10(1+slopeI), y = log10(1+slopeRatio))) +
   stat_density_2d(geom="polygon", aes(fill=allee, alpha=..level..), contour=T, bins=14) + 
   scale_fill_manual(values = c("#b33018","#14b74b")) +
   theme_classic() +
   scale_color_manual(values=c("#b33018","#14b74b"))+
   theme(legend.position = "none") +  
-  geom_abline(slope=0, intercept = log10(2)-.1, linetype="dotted") +
+  geom_abline(slope=0, intercept = log10(2), linetype="dotted") +
   xlim(xlims) +
   ylim(ylims) +
   #  labs(x="log10(1+slope before breakout point)",y="log10(1+slope after/slope before)")
@@ -182,8 +183,7 @@ plot_slopes_s6b <- print(plot_slopes_s6b)
 figS6 <- ggarrange(figS6a, plot_slopes_s6b,
                    legend = "top",labels = "auto")
 
-ggsave(figS6, file = "./plots/S6_weight_evidence_sims.pdf", width = 8, height = 4, units = "in")
-#ggsave(fig26,file="figs6.png",width=8,height=4)
+ggsave(figS6, file = "./plots/S6_weight_evidence_sims.png", width = 8, height = 4, units = "in")
 
 
 ################
@@ -197,7 +197,7 @@ dataEvidPlot <- list()
 
 for (dataType in names(dataFits)) {
   fitData <- dataFits[[dataType]]
-  fileName <- paste("./plots/SX_", dataType, "_weight_of_evidence.pdf", sep = "")
+  fileName <- paste("./plots/SX_", dataType, "_weight_of_evidence.png", sep = "")
 
   if (dataType == "counties") {
     geoType <- "U.S. counties"  
@@ -222,7 +222,7 @@ for (dataType in names(dataFits)) {
 figWeightEvid <- ggarrange(dataEvidPlot$counties, dataEvidPlot$countries,
                            labels = "auto", nrow = 1)
 
-ggsave(figWeightEvid, file = "./plots/S6_weight_evidence_data.pdf",
+ggsave(figWeightEvid, file = "./plots/S6_weight_evidence_data.png",
        width = 8, height = 4, units = "in")
 
 

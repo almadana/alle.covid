@@ -3,9 +3,9 @@ library(tidyr)
 library(ggplot2)
 library(ggpubr)
 
-fileAllDyns <- "./plots/data_dynamics.pdf"
+fileAllDyns <- "./plots/data_dynamics.png"
 
-fileSuppDyns <- "./plots/all_counties_dyn.pdf"
+fileSuppDyns <- "./plots/all_counties_dyn.png"
 
 nExamples <- 8 # cuantos de cada
 ######################################
@@ -19,7 +19,8 @@ countiesFit <- readRDS("./generated_data/countiesFit.RDS") %>%
 
 fittedCounties <- as.character(countiesFit$Id)
 
-countiesCovid <- read.csv("./raw_data/us-counties.csv", colClasses = c("fips" = "character")) %>%
+countiesCovid <- read.csv("./raw_data/us-counties.csv",
+                          colClasses = c("fips" = "character")) %>%
   as_tibble(.) %>%
   dplyr::filter(., county != "Unknown" & cases > 10) %>%
   dplyr::group_by(., fips) %>% 
@@ -44,10 +45,11 @@ countiesAll <- countiesAll %>%
    cumI_fit = ifelse(t<10^time.threshold,
                      10^(intercept + log10(t)*slopeI),
                      10^(intercept - log10(t_bp)*slopeF +
-                         log10(t_bp-1) * slopeI + log10(t) * slopeF))) 
+                         log10(t_bp) * slopeI + log10(t) * slopeF))) 
 
 # get counties with the least and most pronounced breakpoints
-increasingRatio <- dplyr::filter(countiesFit, slopeRatio > 1)
+increasingRatio <- dplyr::filter(countiesFit, slopeRatio > 1 &
+                                 Id != "13087")
 slopeOrder <- base::order(increasingRatio$slopeRatio)
 nCounties <- length(slopeOrder)
 #ind <- round(c(seq(1, nCounties, nCounties/(nExamples-1)), nCounties))
@@ -112,7 +114,7 @@ countriesAll <- countriesAll %>%
    cumI_fit = ifelse(t<10^time.threshold,
                      10^(intercept + log10(t)*slopeI),
                      10^(intercept - log10(t_bp)*slopeF +
-                         log10(t_bp-1) * slopeI + log10(t) * slopeF)),
+                         log10(t_bp) * slopeI + log10(t) * slopeF)),
                 Country = as.character(Country)) %>%
   as_tibble(.)
 
@@ -197,13 +199,13 @@ for (nc in 1:nChunks) {
           text = element_text(size=10)) +
     geom_line(aes(x=t,y=cumI_fit), color="sky blue")
 
-  fileName <- paste("./plots/S3_", as.character(nc), "all_counties_dyn.pdf", sep = "")
-  ggsave(fileName, plotsCountiesSupp, width = 22,
-         height = chunkRows*2.5, units = "in", limitsize = FALSE)
+  fileName <- paste("./plots/S3_", as.character(nc), "all_counties_dyn.png", sep = "")
+  ggsave(fileName, plotsCountiesSupp, width = 12,
+         height = chunkRows*1.5, units = "in", limitsize = FALSE)
 }
 
 #plot
-countriesId <- as.character(countriesFit$Id)
+countriesId <- as.character(countriesFit$Country)
 nCountries <- length(countriesId)
 plotCols <- 8
 chunkRows <- 10
@@ -211,10 +213,6 @@ chunkPlots <- plotCols * chunkRows
 nChunks <- ceiling(nCountries / chunkPlots)
 
 #fix names
-
-plotsCountriesSupp <- dplyr::filter(countriesAll, Id %in% chunkId) %>%
-  dplyr::mutate(country = ifelse(Country_Region %in% "Korea, South","South Korea",
-                                 Country_Region)) %>% 
 
 for (nc in 1:nChunks) {
   indI <- (nc-1)*chunkPlots+1
@@ -226,12 +224,12 @@ for (nc in 1:nChunks) {
   }
   chunkId <- countriesId[indI:indF]
 
-  plotsCountriesSupp <- dplyr::filter(countriesAll, Id %in% chunkId) %>%
+  plotsCountriesSupp <- dplyr::filter(countriesAll, Country %in% chunkId) %>%
     dplyr::mutate(country = ifelse(Country_Region %in% "Korea, South","South Korea",
                                    Country_Region)) %>% 
     ggplot(., aes(x = t, y = cumI)) +
     geom_point(color = "#4020ab") +
-    facet_wrap(~Country_Region, scales = "free", ncol = plotCols) +
+    facet_wrap(~Country, scales = "free", ncol = plotCols) +
     scale_x_continuous(breaks = c(1, 5, 25), trans = "log10") +
     #scale_y_continuous(limits = c(10, NA), trans = "log10") +
     scale_y_continuous(trans = "log10") +
@@ -246,8 +244,8 @@ for (nc in 1:nChunks) {
           text = element_text(size=10)) +
     geom_line(aes(x=t,y=cumI_fit),color="sky blue")
 
-  fileName <- paste("./plots/S3_", as.character(nc), "all_countries_dyn.pdf", sep = "")
-  ggsave(fileName, plotsCountriesSupp, width = 20,
-         height = chunkRows*2.2, units = "in", limitsize = FALSE)
+  fileName <- paste("./plots/S3_", as.character(nc), "all_countries_dyn.png", sep = "")
+  ggsave(fileName, plotsCountriesSupp, width = 12,
+         height = chunkRows*1.5, units = "in", limitsize = FALSE)
 }
 

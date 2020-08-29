@@ -50,15 +50,15 @@ for (sim in unique(simFit$simN)) {
   ylims= c(-.01,2)
 
   plot_slopes[[sim]] <- sim_countiesFit %>%
-    filter(slopeRatio>1) %>%
+    #filter(slopeRatio>1) %>%
     ggplot(., aes(group=allee, fill=allee, x=log10(1+slopeI), y=log10(1+slopeRatio))) +
     stat_density_2d(geom="polygon", aes(fill=allee, alpha=..level..), contour=T, bins=14) + 
-    geom_point(shape=20, data=(countiesFit %>% filter(slopeRatio>1)), alpha=1,
+    geom_point(shape=20, data=(countiesFit), alpha=1,
                aes(col=allee), size = 0.8) +
     scale_fill_manual(values = c("#FFFFFF","#b33018","#14b74b")) +
     theme_classic() +
     scale_color_manual(values=c("#000080","#b33018","#14b74b"))+
-    geom_abline(slope=0,intercept = log10(2)-.1,linetype="dotted") +
+    geom_abline(slope=0,intercept = log10(2),linetype="dotted") +
 #    geom_text_repel(data=sim_countiesFit, aes(label=label), size=3) +
     #annotate("text", x=0.03, y=log10(2)+0.1, label="equal slopes", size=3) +
 #    geom_text(data = parameterDf, aes(label=parText, x = x, y = y), size=3) +
@@ -82,23 +82,20 @@ for (sim in unique(simFit$simN)) {
 
 nSplits <- 4
 plotInds <- c(1:72)
+nCol <- 3
 chunkSize <- max(plotInds)/nSplits
 indSplits <- split(plotInds, ceiling(seq_along(plotInds)/chunkSize))
 
-for (n in 1:length(indSplits)) {
-
-split1 <- ggarrange(plotlist = plot_slopes[1:24], ncol = 3, nrow = 8)
-split2 <- ggarrange(plotlist = plot_slopes[25:48], ncol = 3, nrow = 8)
-split3 <- ggarrange(plotlist = plot_slopes[49:72], ncol = 3, nrow = 8)
-split4 <- 
-
 figWidth <- 10
-figHeight <- 18
-ggsave(split1, file="./plots/parameter_exploration1.pdf", width=figWidth,
-       height=figHeight, units = "in")
-ggsave(split2, file="./plots/parameter_exploration2.pdf", width=figWidth,
-       height=figHeight, units = "in")
-ggsave(split3, file="./plots/parameter_exploration3.pdf", width=figWidth,
-       height=figHeight, units = "in")
+figHeight <- 15
+for (n in 1:length(indSplits)) {
+  nRow <- ceiling(length(indSplits[[n]])/nCol)
+  split <- ggarrange(plotlist = plot_slopes[indSplits[[n]]],
+                     ncol = nCol, nrow = nRow)
+  fileName <- paste("./plots/parameter_exploration",
+                    as.character(n), ".png", sep="")
+  ggsave(split, file=fileName, width=figWidth,
+         height=figHeight, units = "in")
+}
 
 
