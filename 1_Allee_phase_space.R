@@ -261,13 +261,17 @@ legend <- gtable_filter(ggplotGrob(legendPlot), "guide-box")
 
 plotGrid <- grid.arrange(
                      arrangeGrob(detectedPlot + theme(legend.position="none",
-                                                      axis.title.y=element_blank()),
+                                                      axis.title.y=element_blank(),
+                                                      plot.margin=margin(8,8,8,8)),
                                  callsPlot + theme(legend.position="none",
-                                                      axis.title.y=element_blank()),
+                                                      axis.title.y=element_blank(),
+                                                      plot.margin=margin(8,8,8,8)),
                                  infectionPlot + theme(legend.position="none",
-                                                      axis.title.y=element_blank()),
+                                                      axis.title.y=element_blank(),
+                                                      plot.margin=margin(8,8,8,8)),
                                  linksPlot + theme(legend.position="none",
-                                                      axis.title.y=element_blank()),
+                                                      axis.title.y=element_blank(),
+                                                      plot.margin=margin(8,8,8,8)),
                                  ncol=2, left = "Proportion infected"),legend,
                      heights=c(10, .5))
 

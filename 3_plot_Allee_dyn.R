@@ -86,8 +86,8 @@ plotsDynNonAllee <- dplyr::filter(simulationsFit,
         plot.title = element_text(hjust = 0.5)) +
   geom_line(aes(x=t,y=cumI_fit),color="green")
 
-dynsPlots <- grid.arrange(plotsDynAllee, plotsDynNonAllee, ncol=2,
-                          left = "Cumulative infected")
+dynsPlots <- grid.arrange(plotsDynAllee+theme(plot.margin=margin(8,8,8,8)), plotsDynNonAllee+theme(plot.margin=margin(8,8,8,8)), ncol=2,
+                          left = text_grob("Cumulative infected",size=10,rot=90))
 
 ggsave("./plots/simDynamics.pdf", dynsPlots, width = 18, height = 11, units = "in")
 
@@ -96,11 +96,11 @@ ggsave("./plots/simDynamics.pdf", dynsPlots, width = 18, height = 11, units = "i
 ##############################
 
 source("./1_Allee_phase_space.R")
-fig1_top_row = ggarrange(allee1D, plotGrid,nrow=1,labels="auto")
+fig1_top_row = ggarrange(allee1D+theme(plot.margin=margin(8,8,8,8)), plotGrid,nrow=1,labels="auto")
 fig1 <- ggarrange(fig1_top_row, dynsPlots, ncol=1,nrow = 2,
                   labels = c("","c"),heights = c(1,.5))
-ggsave("./plots/fig1.png", fig1, width = 8, height = 6, units = "in")
-ggsave("./plots/fig1.pdf", fig1, width = 8, height = 6, units = "in")
+ggsave("./plots/fig1.png", fig1, width = 9, height = 6, units = "in")
+ggsave("./plots/fig1.pdf", fig1, width = 9, height = 6, units = "in")
 
 ################
 # ---- Plot extended sample of simulation dynamics for supplementary -----
