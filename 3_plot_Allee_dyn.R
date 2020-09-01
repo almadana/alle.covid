@@ -10,6 +10,7 @@ library(gridExtra)
 
 set.seed(2691)
 nPlotDyn <- 4
+nCols <- 2
 
 dynamicsData <- readRDS("./generated_data/SIR_dynamics_simulation.RDS") %>%
   as_tibble(.)
@@ -25,7 +26,7 @@ simulationsFit <- simulationsFit %>%
   as_tibble(.)
 
 ##################################
-#### scatter plot of initial slope and final slope for simulations
+#### --- scatter plot of initial slope and final slope for simulations ----
 ##################################
 #plotChange <- dynamicsFit %>%
 #  dplyr::mutate(., allee = c("w/o Allee", "Allee")[as.integer(allee)+1]) %>%
@@ -39,10 +40,10 @@ simulationsFit <- simulationsFit %>%
 
 
 #############################
-#### Plot the full dynamics of a selection of simulations
+####  ---- Plot the full dynamics of a selection of simulations ----
 #############################
 alleeSampleFit <- dplyr::filter(dynamicsFit, slopeRatio > 1 & allee)
-slopeOrder <- base::order(alleeSampleFit$slopeRatio)
+slopeOrder <- base::order(alleeSampleFit$slopeRatio,decreasing=T)
 nSims <- length(slopeOrder)
 ind <- round(c(seq(3, nSims, nSims/(nPlotDyn-1)), nSims-5))
 alleeSamples <- alleeSampleFit$rep[ind]
@@ -57,13 +58,13 @@ plotsDynAllee <- dplyr::filter(simulationsFit,
                                allee == TRUE & rep %in% alleeSamples) %>%
   ggplot(., aes(x = t, y = cumI)) +
   geom_point(color = "#b33018") +
-  facet_wrap(~rep, scales = "free", ncol = 2) +
+  facet_wrap(~rep, scales = "free", ncol = nCols) +
   scale_x_continuous(breaks = c(1, 5, 25), trans = "log10") +
   scale_y_continuous(limits = c(10, NA), trans = "log10") +
   xlab("time (days)") +
   ylab("Cumulative infected") +
   ylab(element_blank()) +
-  ggtitle("with NPI") +
+  ggtitle("with NPIs") +
   theme_classic() +
   theme(strip.background = element_blank(), strip.text.x = element_blank(),
         plot.title = element_text(hjust = 0.5)) +
@@ -73,20 +74,20 @@ plotsDynNonAllee <- dplyr::filter(simulationsFit,
                                   allee == FALSE & rep %in% nonAlleeSamples) %>%
   ggplot(., aes(x = t, y = cumI)) +
   geom_point(color = "#14b74b") +
-  facet_wrap(~rep, scales = "free", ncol = 2) +
+  facet_wrap(~rep, scales = "free", ncol = nCols) +
   scale_x_continuous(breaks = c(1, 5, 25), trans = "log10") +
   scale_y_continuous(limits = c(10, NA), trans = "log10") +
   xlab("time (days)") +
   ylab("Cumulative infected") +
   ylab(element_blank()) +
-  ggtitle("without NPI") +
+  ggtitle("without NPIs") +
   theme_classic() +
   theme(strip.background = element_blank(), strip.text.x = element_blank(),
         plot.title = element_text(hjust = 0.5)) +
   geom_line(aes(x=t,y=cumI_fit),color="green")
 
-dynsPlots <- grid.arrange(plotsDynAllee, plotsDynNonAllee, ncol=2,
-                          left = "Cumulative infected")
+dynsPlots <- grid.arrange(plotsDynAllee+theme(plot.margin=margin(8,8,8,8)), plotsDynNonAllee+theme(plot.margin=margin(8,8,8,8)), ncol=2,
+                          left = text_grob("Cumulative infected",size=10,rot=90))
 
 ggsave("./plots/simDynamics.pdf", dynsPlots, width = 18, height = 11, units = "in")
 
@@ -95,12 +96,19 @@ ggsave("./plots/simDynamics.pdf", dynsPlots, width = 18, height = 11, units = "i
 ##############################
 
 source("./1_Allee_phase_space.R")
-fig1 <- ggarrange(allee1D, plotGrid, dynsPlots, nrow = 1, widths = c(2.8, 4, 3.7),
-                  labels = "auto")
-ggsave("./plots/fig1.png", fig1, width = 11, height = 3.6, units = "in")
+fig1_top_row = ggarrange(allee1D+theme(plot.margin=margin(8,8,8,8)), plotGrid,nrow=1,labels="auto")
+fig1_bottom_row = ggarrange(dynsPlots,
+                            npi.upper.plot+theme(plot.margin=margin(8,4,8,12)),
+                            nrow=1,
+                            labels=c("c","d"),
+                            widths = c(1,1))
+fig1 <- ggarrange(fig1_top_row, fig1_bottom_row, ncol=1,nrow = 2,
+                  labels = c("","c"),heights = c(1,.8))
+ggsave("./plots/fig1.png", fig1, width = 9, height = 6, units = "in")
+ggsave("./plots/fig1.pdf", fig1, width = 9, height = 6, units = "in")
 
 ################
-# Plot extended sample of simulation dynamics for supplementary
+# ---- Plot extended sample of simulation dynamics for supplementary -----
 ################
 
 suppN <- 40
@@ -118,7 +126,7 @@ plotsDynAlleeSupp <- dplyr::filter(simulationsFit,
   xlab("time (days)") +
   ylab("Cumulative infected") +
   ylab(element_blank()) +
-  ggtitle("with NPI") +
+  ggtitle("with NPIS") +
   theme_classic() +
   theme(strip.background = element_blank(), strip.text.x = element_blank(),
         plot.title = element_text(hjust = 0.5)) +
@@ -135,7 +143,7 @@ plotsDynNonAlleeSupp <- dplyr::filter(simulationsFit,
   xlab("time (days)") +
   ylab("Cumulative infected") +
   ylab(element_blank()) +
-  ggtitle("without NPI") +
+  ggtitle("without NPIS") +
   theme_classic() +
   theme(strip.background = element_blank(), strip.text.x = element_blank(),
         plot.title = element_text(hjust = 0.5)) +
