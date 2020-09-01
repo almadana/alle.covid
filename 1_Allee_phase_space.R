@@ -20,7 +20,7 @@ library(cowplot)
 library(gtable)
 
 #########
-# Basic model functions
+# ---- Basic model functions ----
 ########
 
 # function of effective social links by day
@@ -67,7 +67,7 @@ calculate_Rt_range <- function(maxDetected, maxLinks, Infected, pCall,
 }
 
 ##############################
-# Functions that generate phase space
+# --- Functions that generate phase space -----
 #############################
 
 ### Calculate Rt for a varying number of detection capacity
@@ -161,8 +161,8 @@ plot_phase_space <- function(inputDF, reverse = FALSE){
   spacePlot <- ggplot(inputDF, aes(x = measure, y = Infected, fill = Rt_exp)) +
     geom_raster() +
     scale_fill_manual(values = c("#243faf", "#fa3d1b"),
-                      name = element_blank(), labels = c("Re < 1 (Containment)",
-                                                         "Re > 1 (Outbreak)")) +
+                      name = element_blank(), labels = c(bquote(R[e]<1~" \n (Containment)"),
+                                                         bquote(R[e]>1~" \n (Outbreak)"))) +
     scale_y_continuous(name = "Proportion infected", expand = c(0,0),
                        limits = c(0,.8), breaks = c(0, 0.4, 0.8)) +
     theme_bw()
@@ -175,7 +175,7 @@ plot_phase_space <- function(inputDF, reverse = FALSE){
 
 
 ###############################
-# Make the space plots
+# ---- Make the space plots -----
 ###############################
 
 # general parameters
@@ -204,7 +204,7 @@ detectedLong <- Rt_detected(maxLinks = maxLinks, maxDetected = maxDetected_Vec,
 detectedPlot <- dplyr::rename(detectedLong, measure = maxDetected) %>%
   dplyr::mutate(Infected =Infected/ Npop) %>% 
   plot_phase_space(.) +
-  ggtitle("Contact tracing capacity") +
+  ggtitle("Tracing capacity") +
   theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"),
         axis.title.x = element_text(size = 10)) +
   scale_x_continuous(breaks = c(0, 400, 800), name = "Detection capacity",
@@ -219,7 +219,7 @@ callsLong <- Rt_calls(maxLinks = maxLinks, maxDetected = maxDetected,
 callsPlot <- dplyr::rename(callsLong, measure = maxCalls) %>%
   dplyr::mutate(Infected =Infected/ Npop) %>% 
   plot_phase_space(.) +
-  ggtitle("Contact tracing velocity") +
+  ggtitle("Tracing speed") +
   theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold")) +
   scale_x_continuous(breaks = c(0, 500, 1000), name =  "Maximum daily calls",
                      expand = c(0,0))
@@ -253,27 +253,87 @@ infectionPlot <- dplyr::rename(infectionLong, measure = pInfection) %>%mutate(In
 
 
 
-# arrange plots into grid
-legendPlot <- detectedPlot + theme(legend.position = "top")
+# ---- arrange plots into grid -----
+legendPlot <- detectedPlot + theme(legend.position = "bottom",
+                                   legend.key.size = unit(.5,"cm"),
+                                   legend.text = element_text(size = 9))
 legend <- gtable_filter(ggplotGrob(legendPlot), "guide-box")
 
-plotGrid <- grid.arrange(legend,
+plotGrid <- grid.arrange(
                      arrangeGrob(detectedPlot + theme(legend.position="none",
-                                                      axis.title.y=element_blank()),
+                                                      axis.title.y=element_blank(),
+                                                      plot.margin=margin(8,8,8,8)),
                                  callsPlot + theme(legend.position="none",
-                                                      axis.title.y=element_blank()),
+                                                      axis.title.y=element_blank(),
+                                                      plot.margin=margin(8,8,8,8)),
                                  infectionPlot + theme(legend.position="none",
-                                                      axis.title.y=element_blank()),
+                                                      axis.title.y=element_blank(),
+                                                      plot.margin=margin(8,8,8,8)),
                                  linksPlot + theme(legend.position="none",
-                                                      axis.title.y=element_blank()),
-                                 ncol=2, left = "Proportion infected"),
-                     heights=c(1, 10))
+                                                      axis.title.y=element_blank(),
+                                                      plot.margin=margin(8,8,8,8)),
+                                 ncol=2, left = "Proportion infected")#,legend,
+                     #heights=c(10, .5)
+                     )
 
 
 ggsave("./plots/phase_space.png", plotGrid, width = 15, height = 13, units = "cm")
 
+
+######
+### ---- plot state-space dynamics for fig 1d----
+###
+x1 = 300
+x2 = 580
+y1 = .16
+y2 = .3
+y1bis = .05
+xOffset = 25
+yOffset= 15
+colSquare = "yellow"
+colLine = "white"
+fontSize = 3
+
+npi.upper.plot = detectedPlot + scale_x_continuous(breaks = c(0, 400, 800), 
+                                  labels = c("","",""),
+                                  expand = c(0,0)) +
+  ggtitle("") +
+  labs(x="Strength of NPIs",y="Propotion infected")+
+  
+  theme(#axis.title.y=element_blank(),
+        legend.key.size = unit(.5,"cm"),
+        legend.text = element_text(size = 9),
+        legend.position = "right")+
+  annotate(geom="point",x=x1,y=y1,col=colSquare)+
+  annotate(geom="point",x=x2,y=y1,col=colSquare)+
+  annotate(geom="point",x=x1,y=y2,col=colSquare)+
+  annotate(geom="point",x=x2,y=y2,col=colSquare) + 
+  annotate(geom = "text",x=x2+xOffset,y1,label="italic(i)",size=fontSize,parse=T,hjust="outward",col=colSquare)+
+  annotate(geom = "text",x=x2+xOffset,y2,label="italic(iv)",size=fontSize,parse=T,hjust="outward",col=colSquare)+
+  annotate(geom = "text",x=x1-xOffset,y1,label="italic(ii)",size=fontSize,parse=T,hjust="outward",col=colSquare)+
+  annotate(geom = "text",x=x1-xOffset,y2,label="italic(iii)",size=fontSize,parse=T,hjust="outward",col=colSquare)+
+  annotate(geom="segment",x=x2,xend = x1+25,y=y1,yend=y1,col=colSquare,
+           arrow = arrow(length = unit(0.2, "cm"), ends = "last",type="closed"),linetype="dashed") +
+  annotate(geom="segment",x=x1,xend = x2-25,y=y2,yend=y2,col=colSquare,
+           arrow = arrow(length = unit(0.2, "cm"), ends = "last",type = "closed"),linetype="dashed")+
+  annotate(geom="segment",x=x1,xend = x1,y=y1,yend=y2-.02,col=colSquare,
+           arrow = arrow(length = unit(0.2, "cm"), ends = "last",type = "closed"),linetype="dashed")+
+  annotate(geom="point",x=x1,y=y1bis,col=colLine)+
+  annotate(geom = "text",x=x1-xOffset,y1bis,label="italic(ii)",size=fontSize,parse=T,hjust="outward",col=colLine)+
+  annotate(geom="segment",x=x2,xend = x1+xOffset,y=y1,yend=y1bis,col=colLine,
+           arrow = arrow(length = unit(0.2, "cm"), ends = "last",type="closed")) 
+  
+
+
+npi.upper.plot
+
+
+#npi.lower.plot = npi.upper.plot
+
+#grid.arrange(npi.upper.plot,npi.lower.plot,ncol=1,left="Proportion infected",bottom="Strength of NPIs")
+
 ########################
-# plot 1d phase space
+#----  plot 1d phase space ----
 ########################
 
 # Rt as function of infected individuals without allee
@@ -297,7 +357,7 @@ rdf <- data.frame(Infected = c(1:2000), lR = lR, aR = aR) %>%
   tidyr::pivot_longer(., cols = c("aR", "lR"), names_to = "model",
                       values_to = "R")
 
-# plotting code to detect and signal thresholds and comment the plots
+#--- plotting code to detect and signal thresholds and comment the plots----
 
 equilibriumPoints <- which(aR < 1)
 point1 <- which(diff(equilibriumPoints) == max(diff(equilibriumPoints)))
@@ -335,6 +395,7 @@ allee1D <- ggplot(rdf, aes(x = Infected, y = R, color = model)) +
             #hjust = "inward", family = "sans", fontface = "plain", ) +
   annotate("text", x=point1+50, y=0.7, label=thresholdText, size=3.2, hjust="inward") +
   annotate("text", x=point2, y=0.7, label=immunityText, size=3.2, hjust="inward") +
+  annotate("text",x=point1+100,y=2.5,label="Allee effect \n (saturation of NPIs)",size=3,hjust="center") +
 #  geom_text(aes(x = point2, y = 0.7), label = immunityText, color = "black",
  #           hjust = "inward", family = "sans", fontface = "plain" ) +
   theme_classic() +

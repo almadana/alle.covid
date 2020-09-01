@@ -101,7 +101,7 @@ plot_slopes$sp <- simFit %>%
   theme(legend.position = "top") +  
   geom_abline(slope=0,intercept = log10(2),linetype="dotted") +
   geom_text_repel(data=sim_countiesFit, aes(label=label), size=3) +
-  annotate("text", x=0.03, y=log10(2)+0.1, label="equal slopes", size=3) +
+  annotate("text", x=0.35, y=log10(2)+0.1, label="equal slopes", size=3) +
   xlim(xlims) +
   ylim(ylims) +
 #  labs(x="log10(1+slope before breakout point)",y="log10(1+slope after/slope before)")
