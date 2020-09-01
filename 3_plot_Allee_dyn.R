@@ -9,8 +9,8 @@ library(segmented)
 library(gridExtra)
 
 set.seed(2691)
-nPlotDyn <- 3
-nCols <- 3
+nPlotDyn <- 4
+nCols <- 2
 
 dynamicsData <- readRDS("./generated_data/SIR_dynamics_simulation.RDS") %>%
   as_tibble(.)
@@ -64,7 +64,7 @@ plotsDynAllee <- dplyr::filter(simulationsFit,
   xlab("time (days)") +
   ylab("Cumulative infected") +
   ylab(element_blank()) +
-  ggtitle("with NPI") +
+  ggtitle("with NPIs") +
   theme_classic() +
   theme(strip.background = element_blank(), strip.text.x = element_blank(),
         plot.title = element_text(hjust = 0.5)) +
@@ -80,7 +80,7 @@ plotsDynNonAllee <- dplyr::filter(simulationsFit,
   xlab("time (days)") +
   ylab("Cumulative infected") +
   ylab(element_blank()) +
-  ggtitle("without NPI") +
+  ggtitle("without NPIs") +
   theme_classic() +
   theme(strip.background = element_blank(), strip.text.x = element_blank(),
         plot.title = element_text(hjust = 0.5)) +
@@ -97,8 +97,13 @@ ggsave("./plots/simDynamics.pdf", dynsPlots, width = 18, height = 11, units = "i
 
 source("./1_Allee_phase_space.R")
 fig1_top_row = ggarrange(allee1D+theme(plot.margin=margin(8,8,8,8)), plotGrid,nrow=1,labels="auto")
-fig1 <- ggarrange(fig1_top_row, dynsPlots, ncol=1,nrow = 2,
-                  labels = c("","c"),heights = c(1,.5))
+fig1_bottom_row = ggarrange(dynsPlots,
+                            npi.upper.plot+theme(plot.margin=margin(8,4,8,12)),
+                            nrow=1,
+                            labels=c("c","d"),
+                            widths = c(1,1))
+fig1 <- ggarrange(fig1_top_row, fig1_bottom_row, ncol=1,nrow = 2,
+                  labels = c("","c"),heights = c(1,.8))
 ggsave("./plots/fig1.png", fig1, width = 9, height = 6, units = "in")
 ggsave("./plots/fig1.pdf", fig1, width = 9, height = 6, units = "in")
 
@@ -121,7 +126,7 @@ plotsDynAlleeSupp <- dplyr::filter(simulationsFit,
   xlab("time (days)") +
   ylab("Cumulative infected") +
   ylab(element_blank()) +
-  ggtitle("with NPI") +
+  ggtitle("with NPIS") +
   theme_classic() +
   theme(strip.background = element_blank(), strip.text.x = element_blank(),
         plot.title = element_text(hjust = 0.5)) +
@@ -138,7 +143,7 @@ plotsDynNonAlleeSupp <- dplyr::filter(simulationsFit,
   xlab("time (days)") +
   ylab("Cumulative infected") +
   ylab(element_blank()) +
-  ggtitle("without NPI") +
+  ggtitle("without NPIS") +
   theme_classic() +
   theme(strip.background = element_blank(), strip.text.x = element_blank(),
         plot.title = element_text(hjust = 0.5)) +
