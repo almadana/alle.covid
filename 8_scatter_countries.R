@@ -10,7 +10,9 @@ nExamples <- 8
 # load data
 countriesFit <- readRDS("./generated_data/countriesFit.RDS") %>%
   dplyr::mutate(., slopeRatio = slopeF / slopeI) %>%
-  as_tibble(.)
+  as_tibble(.) %>% 
+  mutate(Country=ifelse(Country %in% "Korea, South","South Korea",levels(Country)[Country]))
+  
 
 simFit <- readRDS("./generated_data/SIR_dynamics_fit.RDS") %>%
   dplyr::mutate(allee = factor(ifelse(allee,"with NPI","without NPI")))
@@ -79,7 +81,7 @@ plot_slopes$sp <- simFit %>%
   theme(legend.position = "top") +  
   geom_abline(slope=0,intercept = log10(2),linetype="dotted") +
   geom_text_repel(data=sim_countriesFit, aes(label=label), size=3)+
-  annotate("text", x=0.03, y=log10(2)+0.1, label="equal slopes", size=3) +
+  annotate("text", x=0.04, y=log10(2)-0.08, label="equal slopes", size=3) +
   xlim(xlims) +
   ylim(ylims) +
 #  labs(x="log10(1+slope before breakout point)",y="log10(1+slope after/slope before)")
