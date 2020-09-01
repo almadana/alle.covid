@@ -2,6 +2,7 @@ library(ggpubr)
 library(ggforce)
 library(ggrepel)
 library(dplyr)
+library(ggpmisc)
 
 # load data
 simFit <- readRDS("./generated_data/SIR_dynamics_fit.RDS") %>%
@@ -55,8 +56,6 @@ for (dataType in names(dataFits)) {
           axis.line.y = element_line(size=0.5, linetype="solid"))
   #mtext("b",side=3,at=-2.2,cex=1.6)
 
-  slopeI_Pop_Corr <- cor.test(fitData$slopeI, log10(fitData$Population),
-                             method = "pearson")
   slopeI_Pop_plot <- ggplot(fitData, aes(x = log10(Population), y = slopeI)) +
     geom_point(color = "#4020ab") +
     theme_bw() +
@@ -64,12 +63,16 @@ for (dataType in names(dataFits)) {
           axis.line.x = element_line(size=0.5, linetype="solid"),
           axis.line.y = element_line(size=0.5, linetype="solid")) +
     geom_smooth(method = "lm", color = "red", se = FALSE) +
+    stat_fit_glance(method = 'lm', geom = 'text',
+                    mapping =
+                    aes(label = paste0("p = ", format(..p.value.., digits=1),
+                                       "\nR^2 =", format(..r.squared.., digits=2))),
+                    label.x = 6.5, label.y = 1.4) +
     ylab("Initial slope") +
-    xlab("Log10(Population)")
+    xlab("Log10(Population)") +
+    ylim(-0.1, 1.52)
 
 
-  slopeF_Pop_Corr <- cor.test(fitData$slopeF, log10(fitData$Population),
-                             method = "pearson")
   slopeF_Pop_plot <- ggplot(fitData, aes(x = log10(Population), y = slopeF)) +
     geom_point(color = "#4020ab") +
     theme_bw() +
@@ -77,12 +80,15 @@ for (dataType in names(dataFits)) {
           axis.line.x = element_line(size=0.5, linetype="solid"),
           axis.line.y = element_line(size=0.5, linetype="solid")) +
     geom_smooth(method = "lm", color = "red", se = FALSE) +
+    stat_fit_glance(method = 'lm', geom = 'text',
+                    mapping =
+                    aes(label = paste0("p = ", format(..p.value.., digits=1),
+                                       "\nR^2 =", format(..r.squared.., digits=2))),
+                    label.x = 6.3, label.y = 6.8) +
     ylab("Slope after threshold") +
     xlab("Log10(Population)")
 
 
-  breakPoint_Pop_Corr <- cor.test(log10(fitData$I.active), log10(fitData$Population),
-                             method = "pearson")
   breakPoint_Pop_plot <- ggplot(fitData, aes(x = log10(Population),
                                                   y = log10(I.active))) +
     geom_point(color = "#4020ab") +
@@ -91,15 +97,21 @@ for (dataType in names(dataFits)) {
           axis.line.x = element_line(size=0.5, linetype="solid"),
           axis.line.y = element_line(size=0.5, linetype="solid")) +
     geom_smooth(method = "lm", color = "red", se = FALSE) +
+    stat_fit_glance(method = 'lm', geom = 'text',
+                    mapping =
+                    aes(label = paste0("p = ", format(..p.value.., digits=1),
+                                       "\nR^2 =", format(..r.squared.., digits=2))),
+                    label.x = 6.5, label.y = 4.5) +
     xlab("Log10(Active at threshold)") +
-    xlab("Log10(Population)")
+    xlab("Log10(Population)") +
+    ylim(-0.1, 5)
 
     
   figureSupp4 <- ggarrange(slopeI_hist, slopeF_hist, breakPointInfected_hist,
                    slopeI_Pop_plot, slopeF_Pop_plot, breakPoint_Pop_plot,
                    widths = c(4,3), labels = "auto")
 
-  ggsave(figureSupp4, file = fileName, width = 11, height = 7, units = "in")
+  ggsave(figureSupp4, file = fileName, width = 9, height = 5, units = "in")
 }
 
 

@@ -4,6 +4,7 @@ library(ggplot2)
 library(ggpubr)
 library(ggforce)
 library(ggrepel)
+library(class)
 
 nExamples <- 8
 
@@ -27,6 +28,7 @@ annotationDf <- data.frame(x = rep(0.31, 5),
                            y = seq(from=2, to=1.3, length.out=5))
 
 plot_slopes <- list()
+proportionSimilarAllee <- NULL
 for (sim in unique(simFit$simN)) {
   parameterFit <- dplyr::filter(simFit, simN == sim)
   sim_p <- paste("p ==", as.character(parameterFit$p.x[1]))
@@ -78,8 +80,34 @@ for (sim in unique(simFit$simN)) {
     }
 
   plot_slopes[[sim]]$labels$fill=""
+
+  # use KNN to see proportion of counties with closest neighbor Allee
+  trainPredictors <- dplyr::select(parameterFit, slopeI, slopeRatio)
+  testPredictors <- dplyr::select(countiesFit, slopeI, slopeRatio)
+  trainPredictors <- dplyr::mutate(trainPredictors, slopeI = log10(1+slopeI),
+                                   slopeRatio = log10(1+slopeRatio))
+  testPredictors <- dplyr::mutate(testPredictors, slopeI = log10(1+slopeI),
+                                   slopeRatio = log10(1+slopeRatio))
+  intLabel <- as.integer(parameterFit$allee == "with NPI")
+  trainLabels <- c("non Allee", "Allee")[intLabel + 1]
+  naInds <- which(is.na(trainPredictors$slopeRatio))
+  infInds <- which(is.infinite(trainPredictors$slopeRatio))
+  removeInds <- c(naInds, infInds)
+  if (length(removeInds)>0) {
+    trainPredictors <- trainPredictors[-removeInds,]
+    trainLabels <- trainLabels[-removeInds]
+  }
+  naIndsTest <- which(is.na(testPredictors$slopeRatio))
+  if (length(naIndsTest)>0) {
+    testPredictors <- testPredictors[-naIndsTest,]
+  }
+  knnResult <- knn(train = trainPredictors, test = testPredictors,
+                   cl = trainLabels, k = 10)
+  proportionSimilarAllee[length(proportionSimilarAllee)+1] <-
+    mean(knnResult == "Allee")
 }
 
+#plot density plots
 nSplits <- 4
 plotInds <- c(1:72)
 nCol <- 3
@@ -98,4 +126,39 @@ for (n in 1:length(indSplits)) {
          height=figHeight, units = "in")
 }
 
+# plot histogram with similarities
+proportionSimilarAllee <- data.frame(Allee_class = proportionSimilarAllee)
+knnPlot <- ggplot(data = proportionSimilarAllee, aes(x = Allee_class)) +
+    geom_histogram(color = "gray", fill="#b33018") +
+    xlab("Proportion of dynamics classified as Allee") +
+    ylab("Parameter combinations") +
+    theme_bw() +
+    theme(panel.border = element_blank(),
+          axis.line.x = element_line(size=0.5, linetype="solid"),
+          axis.line.y = element_line(size=0.5, linetype="solid")) +
+    xlim(0, 1)
+
+ggsave(knnPlot, file="./plots/parameter_exploration_KNN_histogra.png",
+       width=4, height=4, units = "in")
+
+
+# Plot proportion of simulations with weight of evidence > 0.95
+proportionSegmented <- group_by(simFit, simN, allee) %>%
+  summarize(., highlySegmented = mean(weighted.evidence > 0.95))
+
+plotSegmentedProportion <- proportionSegmented %>%
+  ggplot(., aes(highlySegmented, fill = allee)) +
+  geom_histogram(color = "gray") +
+  facet_wrap(~allee, ncol=1) +
+  xlab("Proportion with weight of evidence > 0.95") +
+  ylab("Parameter combinations") +
+  scale_fill_manual(values = c("#b33018","#14b74b")) +
+  theme_bw() +
+  theme(panel.border = element_blank(),
+        axis.line.x = element_line(size=0.5, linetype="solid"),
+        axis.line.y = element_line(size=0.5, linetype="solid"))
+
+
+ggsave(plotSegmentedProportion, file="./plots/Supp_proportionSegmented.png",
+       width = 4, height = 4, units = "in")
 
