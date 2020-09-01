@@ -161,8 +161,8 @@ plot_phase_space <- function(inputDF, reverse = FALSE){
   spacePlot <- ggplot(inputDF, aes(x = measure, y = Infected, fill = Rt_exp)) +
     geom_raster() +
     scale_fill_manual(values = c("#243faf", "#fa3d1b"),
-                      name = element_blank(), labels = c(bquote(R[e]<1~"(Containment)"),
-                                                         bquote(R[e]>1~"(Outbreak)"))) +
+                      name = element_blank(), labels = c(bquote(R[e]<1~" \n (Containment)"),
+                                                         bquote(R[e]>1~" \n (Outbreak)"))) +
     scale_y_continuous(name = "Proportion infected", expand = c(0,0),
                        limits = c(0,.8), breaks = c(0, 0.4, 0.8)) +
     theme_bw()
@@ -272,11 +272,65 @@ plotGrid <- grid.arrange(
                                  linksPlot + theme(legend.position="none",
                                                       axis.title.y=element_blank(),
                                                       plot.margin=margin(8,8,8,8)),
-                                 ncol=2, left = "Proportion infected"),legend,
-                     heights=c(10, .5))
+                                 ncol=2, left = "Proportion infected")#,legend,
+                     #heights=c(10, .5)
+                     )
 
 
 ggsave("./plots/phase_space.png", plotGrid, width = 15, height = 13, units = "cm")
+
+
+######
+### ---- plot state-space dynamics for fig 1d----
+###
+x1 = 300
+x2 = 580
+y1 = .16
+y2 = .3
+y1bis = .05
+xOffset = 25
+yOffset= 15
+colSquare = "yellow"
+colLine = "white"
+fontSize = 3
+
+npi.upper.plot = detectedPlot + scale_x_continuous(breaks = c(0, 400, 800), 
+                                  labels = c("","",""),
+                                  expand = c(0,0)) +
+  ggtitle("") +
+  labs(x="Strength of NPIs",y="Propotion infected")+
+  
+  theme(#axis.title.y=element_blank(),
+        legend.key.size = unit(.5,"cm"),
+        legend.text = element_text(size = 9),
+        legend.position = "right")+
+  annotate(geom="point",x=x1,y=y1,col=colSquare)+
+  annotate(geom="point",x=x2,y=y1,col=colSquare)+
+  annotate(geom="point",x=x1,y=y2,col=colSquare)+
+  annotate(geom="point",x=x2,y=y2,col=colSquare) + 
+  annotate(geom = "text",x=x2+xOffset,y1,label="italic(i)",size=fontSize,parse=T,hjust="outward",col=colSquare)+
+  annotate(geom = "text",x=x2+xOffset,y2,label="italic(iv)",size=fontSize,parse=T,hjust="outward",col=colSquare)+
+  annotate(geom = "text",x=x1-xOffset,y1,label="italic(ii)",size=fontSize,parse=T,hjust="outward",col=colSquare)+
+  annotate(geom = "text",x=x1-xOffset,y2,label="italic(iii)",size=fontSize,parse=T,hjust="outward",col=colSquare)+
+  annotate(geom="segment",x=x2,xend = x1+25,y=y1,yend=y1,col=colSquare,
+           arrow = arrow(length = unit(0.2, "cm"), ends = "last",type="closed"),linetype="dashed") +
+  annotate(geom="segment",x=x1,xend = x2-25,y=y2,yend=y2,col=colSquare,
+           arrow = arrow(length = unit(0.2, "cm"), ends = "last",type = "closed"),linetype="dashed")+
+  annotate(geom="segment",x=x1,xend = x1,y=y1,yend=y2-.02,col=colSquare,
+           arrow = arrow(length = unit(0.2, "cm"), ends = "last",type = "closed"),linetype="dashed")+
+  annotate(geom="point",x=x1,y=y1bis,col=colLine)+
+  annotate(geom = "text",x=x1-xOffset,y1bis,label="italic(ii)",size=fontSize,parse=T,hjust="outward",col=colLine)+
+  annotate(geom="segment",x=x2,xend = x1+xOffset,y=y1,yend=y1bis,col=colLine,
+           arrow = arrow(length = unit(0.2, "cm"), ends = "last",type="closed")) 
+  
+
+
+npi.upper.plot
+
+
+#npi.lower.plot = npi.upper.plot
+
+#grid.arrange(npi.upper.plot,npi.lower.plot,ncol=1,left="Proportion infected",bottom="Strength of NPIs")
 
 ########################
 #----  plot 1d phase space ----
