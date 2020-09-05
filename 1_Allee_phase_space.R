@@ -161,8 +161,8 @@ plot_phase_space <- function(inputDF, reverse = FALSE){
   spacePlot <- ggplot(inputDF, aes(x = measure, y = Infected, fill = Rt_exp)) +
     geom_raster() +
     scale_fill_manual(values = c("#243faf", "#fa3d1b"),
-                      name = element_blank(), labels = c(bquote(R[e]<1~" \n (Containment)"),
-                                                         bquote(R[e]>1~" \n (Outbreak)"))) +
+                      name = element_blank(), labels = c(bquote(R[e]<1~"(Containment)"),
+                                                         bquote(R[e]>1~" (Outbreak)"))) +
     scale_y_continuous(name = "Proportion infected", expand = c(0,0),
                        limits = c(0,.8), breaks = c(0, 0.4, 0.8)) +
     theme_bw()
@@ -293,10 +293,15 @@ yOffset= 15
 colSquare = "yellow"
 colLine = "white"
 fontSize = 3
+xLim = c(0,800)
+yLim = c(0,.5)
+
 
 npi.upper.plot = detectedPlot + scale_x_continuous(breaks = c(0, 400, 800), 
                                   labels = c("","",""),
-                                  expand = c(0,0)) +
+                                  expand = c(0,0),
+                                  limits = xLim) +
+  scale_y_continuous(expand=c(0,0),limits=yLim)+
   ggtitle("") +
   labs(x="Strength of NPIs",y="Propotion infected")+
   
@@ -319,10 +324,9 @@ npi.upper.plot = detectedPlot + scale_x_continuous(breaks = c(0, 400, 800),
   annotate(geom="segment",x=x1,xend = x1,y=y1,yend=y2-.02,col=colSquare,
            arrow = arrow(length = unit(0.2, "cm"), ends = "last",type = "closed"),linetype="dashed")+
   annotate(geom="point",x=x1,y=y1bis,col=colLine)+
-  annotate(geom = "text",x=x1-xOffset,y1bis,label="italic(ii)",size=fontSize,parse=T,hjust="outward",col=colLine)+
+  annotate(geom = "text",x=x1-xOffset,y1bis,label="italic(v)",size=fontSize,parse=T,hjust="outward",col=colLine)+
   annotate(geom="segment",x=x2,xend = x1+xOffset,y=y1,yend=y1bis,col=colLine,
-           arrow = arrow(length = unit(0.2, "cm"), ends = "last",type="closed")) 
-  
+           arrow = arrow(length = unit(0.2, "cm"), ends = "last",type="closed"))
 
 
 npi.upper.plot
