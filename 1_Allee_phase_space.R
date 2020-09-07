@@ -292,6 +292,8 @@ xOffset = 25
 yOffset= 15
 colSquare = "yellow"
 colLine = "white"
+linSquare="dashed"
+linLine = "dotted"
 fontSize = 3
 xLim = c(0,800)
 yLim = c(0,.5)
@@ -318,15 +320,15 @@ npi.upper.plot = detectedPlot + scale_x_continuous(breaks = c(0, 400, 800),
   annotate(geom = "text",x=x1-xOffset,y1,label="italic(ii)",size=fontSize,parse=T,hjust="outward",col=colSquare)+
   annotate(geom = "text",x=x1-xOffset,y2,label="italic(iii)",size=fontSize,parse=T,hjust="outward",col=colSquare)+
   annotate(geom="segment",x=x2,xend = x1+25,y=y1,yend=y1,col=colSquare,
-           arrow = arrow(length = unit(0.2, "cm"), ends = "last",type="closed"),linetype="dashed") +
+           arrow = arrow(length = unit(0.2, "cm"), ends = "last",type="closed"),linetype=linSquare) +
   annotate(geom="segment",x=x1,xend = x2-25,y=y2,yend=y2,col=colSquare,
-           arrow = arrow(length = unit(0.2, "cm"), ends = "last",type = "closed"),linetype="dashed")+
+           arrow = arrow(length = unit(0.2, "cm"), ends = "last",type = "closed"),linetype=linSquare)+
   annotate(geom="segment",x=x1,xend = x1,y=y1,yend=y2-.02,col=colSquare,
-           arrow = arrow(length = unit(0.2, "cm"), ends = "last",type = "closed"),linetype="dashed")+
+           arrow = arrow(length = unit(0.2, "cm"), ends = "last",type = "closed"),linetype=linSquare)+
   annotate(geom="point",x=x1,y=y1bis,col=colLine)+
   annotate(geom = "text",x=x1-xOffset,y1bis,label="italic(v)",size=fontSize,parse=T,hjust="outward",col=colLine)+
   annotate(geom="segment",x=x2,xend = x1+xOffset,y=y1,yend=y1bis,col=colLine,
-           arrow = arrow(length = unit(0.2, "cm"), ends = "last",type="closed"))
+           arrow = arrow(length = unit(0.2, "cm"), ends = "last",type="closed"),linetype=linLine)
 
 
 npi.upper.plot
