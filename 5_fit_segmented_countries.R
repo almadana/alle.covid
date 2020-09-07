@@ -47,6 +47,7 @@ fit_country_segmented <- function(countriesCovid){
         fitSegmented <- segmented(obj = lm(logInfect ~ logTime), seg.Z = ~logTime, psi = 1)
         fit <- summary(fitSegmented)
         paramsSeg <- coefficients(fitSegmented)
+        R2Segmented  <- fit$r.squared
         fitLinear <- lm(logInfect ~ logTime)
         aic <- AIC(fitLinear,fitSegmented)[,2]
         wi <- exp(-0.5*(aic-min(aic)))/sum(exp(-0.5*(aic-min(aic))))
@@ -73,10 +74,10 @@ fit_country_segmented <- function(countriesCovid){
         countryVec <- data.frame(countryId, countryName, N.country[[1]], max(cumCases),
                        paramsSeg[1], paramsSeg[2], paramsSeg[3],
                        timeThreshold, wi[2],
-                       fit$r.squared, I.active)
+                       fit$r.squared, I.active, R2Segmented)
         colnames(countryVec) <- c("Id", "Country", "Population", "I.max",
                                   "intercept", "slopeI", "slopeF", "time.threshold",
-                                  "weighted.evidence","R.sqrt", "I.active")
+                                  "weighted.evidence","R.sqrt", "I.active", "R2")
         out <- rbind(out, countryVec)
         fitLinear <- NULL
         fitSegmented <- NULL
