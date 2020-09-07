@@ -48,6 +48,7 @@ fit_county_segmented <- function(countyPop, countiesCovid){
         fitSegmented <- segmented(obj = lm(logInfect ~ logTime), seg.Z = ~logTime, psi = 1)
         fit <- summary(fitSegmented)
         paramsSeg <- coefficients(fitSegmented)
+        R2Segmented  <- fit$r.squared
         fitLinear <- lm(logInfect ~ logTime)
         aic <- AIC(fitLinear,fitSegmented)[,2]
         wi <- exp(-0.5*(aic-min(aic)))/sum(exp(-0.5*(aic-min(aic))))
@@ -71,10 +72,10 @@ fit_county_segmented <- function(countyPop, countiesCovid){
         countyVec <- data.frame(countyId, N.county[[1]], max(cumCases),
                        paramsSeg[1], paramsSeg[2], paramsSeg[3],
                        timeThreshold, wi[2],
-                       fit$r.squared, I.active)
+                       fit$r.squared, I.active, R2Segmented)
         colnames(countyVec) <- c("Id", "Population", "I.max", "intercept",
                            "slopeI", "slopeF", "time.threshold",
-                           "weighted.evidence","R.sqrt", "I.active")
+                           "weighted.evidence","R.sqrt", "I.active", "R2")
         out <- rbind(out, countyVec)
         fitLinear <- NULL
         fitSegmented <- NULL
