@@ -51,8 +51,11 @@ alleeSamples <- alleeSampleFit$rep[ind]
 nonAlleeSampleFit <- dplyr::filter(dynamicsFit, slopeRatio > 1 & !allee)
 slopeOrder <- base::order(nonAlleeSampleFit$slopeRatio)
 nSims <- length(slopeOrder)
-ind <- round(c(seq(10, nSims, nSims/(nPlotDyn-1)), nSims-10))
-nonAlleeSamples <- nonAlleeSampleFit$rep[ind]
+## fixed sample of dynamics
+#ind <- round(c(seq(10, nSims, nSims/(nPlotDyn-1)), nSims-10))
+## ordered sample
+ind <- slopeOrder[100+(1:nPlotDyn)] # offset to avoid plotting sims with extremely low slopes
+nonAlleeSamples <- nonAlleeSampleFit$rep[ind] 
 
 plotsDynAllee <- dplyr::filter(simulationsFit,
                                allee == TRUE & rep %in% alleeSamples) %>%
