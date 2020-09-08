@@ -214,21 +214,21 @@ for (dataType in names(dataFits)) {
   if (dataType == "counties") {
     geoType <- "U.S. counties"  
   } else if (dataType == "countries") {
-    geoType <- "Countries"  
+    geoType <- "Countries and regions"  
   }
   fitData$geo <- geoType
 
   # Plot histogram of the weight of evidence for breakpoint on data
   dataEvidPlot[[dataType]] <- fitData %>%
     ggplot(., aes(x = weighted.evidence)) +
-    geom_histogram() +
-    labs(x="Weighted evidence for breakpoint",y="# of simulations",fill="")+
-    scale_fill_manual(values = c("#b33018", "#14b74b"))+
+    geom_histogram(fill = "#4020ab") +
+    labs(x="Weighted evidence for breakpoint",y="Count",fill="")+
     theme_classic() +
     theme(strip.background = element_blank(), strip.text.x = element_blank(),
       plot.title = element_text(hjust = 0.5,size=10),
       text = element_text(size=12),
-      legend.position = "top")  
+      legend.position = "top") +
+  ggtitle(geoType)
 }
 
 figWeightEvid <- ggarrange(dataEvidPlot$counties, dataEvidPlot$countries,
@@ -237,4 +237,41 @@ figWeightEvid <- ggarrange(dataEvidPlot$counties, dataEvidPlot$countries,
 ggsave(figWeightEvid, file = "./plots/S6_weight_evidence_data.png",
        width = 8, height = 4, units = "in")
 
+
+
+############################################################
+# Histogram of R2 for segmented fit counties and countries
+############################################################
+
+countiesR2 <- countiesFit %>%
+    ggplot(., aes(x = R2)) +
+    geom_histogram(fill = "#4020ab") +
+    labs(x="R-squared",y="Count",fill="")+
+    theme_classic() +
+    theme(strip.background = element_blank(), strip.text.x = element_blank(),
+      plot.title = element_text(hjust = 0.5,size=10),
+      text = element_text(size=12),
+      legend.position = "top") +
+    ggtitle("U.S. counties")
+
+
+countriesR2 <- countriesFit %>%
+    ggplot(., aes(x = R2)) +
+    geom_histogram(fill = "#4020ab") +
+    labs(x="R-squared",y="Count",fill="")+
+    scale_fill_manual(values = c("#4020ab"))+
+    theme_classic() +
+    theme(strip.background = element_blank(), strip.text.x = element_blank(),
+      plot.title = element_text(hjust = 0.5,size=10),
+      text = element_text(size=12),
+      legend.position = "top") +
+    ggtitle("Countries and regions")
+
+
+figR2 <- ggarrange(dataEvidPlot$counties, dataEvidPlot$countries,
+                   countiesR2, countriesR2, labels = "auto", nrow = 2,
+                   ncol = 2)
+
+ggsave(figR2, file = "./plots/R2_of_fit.png",
+       width = 8, height = 6, units = "in")
 
