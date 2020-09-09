@@ -15,7 +15,7 @@ countriesFit <- readRDS("./generated_data/countriesFit.RDS") %>%
   
 
 simFit <- readRDS("./generated_data/SIR_dynamics_fit.RDS") %>%
-  dplyr::mutate(allee = factor(ifelse(allee,"with NPI","without NPI")))
+  dplyr::mutate(allee = factor(ifelse(allee,"with NPIs","without NPIs")))
 
 fittedCountries <- as.character(countriesFit$Country)
 
@@ -85,8 +85,8 @@ plot_slopes$sp <- simFit %>%
   xlim(xlims) +
   ylim(ylims) +
 #  labs(x="log10(1+slope before breakout point)",y="log10(1+slope after/slope before)")
-  labs(x=expression(paste(Log10, "(", 1+mu[1], ")")),
-       y=expression(paste(Log10, "(", 1+frac(mu[2],mu[1]), ")"))) 
+  labs(x=expression(paste(Log[10], "(", 1+mu[1], ")")),
+       y=expression(paste(Log[10], "(", 1+frac(mu[2],mu[1]), ")"))) 
 
 
 plot_slopes$sp$labels$colour=""
