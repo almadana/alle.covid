@@ -83,8 +83,7 @@ plotsCounties
 
 countriesFit <- readRDS("./generated_data/countriesFit.RDS") %>%
   dplyr::mutate(., slopeRatio = slopeF / slopeI, Country = as.character(Country)) %>%
-  dplyr::mutate(., Country = ifelse(Country %in% "Korea, South","South Korea",
-                                   Country)) %>%
+  dplyr::mutate(., Country = ifelse(Country %in% "Korea, South","South Korea",Country)) %>%
   as_tibble(.)
 
 fittedCountries <- as.character(countriesFit$Id)
@@ -130,11 +129,9 @@ examplesId <- as.character(increasingRatio$Country[examplesIndices])
 
 #plot
 plotsCountries <- dplyr::filter(countriesAll, Country %in% examplesId) %>%
-  dplyr::mutate(country = ifelse(Country_Region %in% "Korea, South","South Korea",
-                                 Country_Region)) %>% 
   ggplot(., aes(x = t, y = cumI)) +
   geom_point(color = "#4020ab") +
-  facet_wrap(~Country_Region, scales = "free", ncol = 4) +
+  facet_wrap(~Country, scales = "free", ncol = 4) +
   scale_x_continuous(breaks = c(1, 5, 25), trans = "log10") +
   #scale_y_continuous(limits = c(10, NA), trans = "log10") +
   scale_y_continuous(trans = "log10") +
