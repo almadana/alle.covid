@@ -207,7 +207,8 @@ detectedPlot <- dplyr::rename(detectedLong, measure = maxDetected) %>%
   ggtitle("Tracing capacity") +
   theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"),
         axis.title.x = element_text(size = 10)) +
-  scale_x_continuous(breaks = c(0, 400, 800), name = "Detection capacity",
+  scale_x_continuous(breaks = c(0, 400, 800),
+                     name = bquote("Detection capacity (K)"),
                      expand = c(0,0))
 
 # Space plot for maximum number of calls (speed of detection)
@@ -216,12 +217,14 @@ callsLong <- Rt_calls(maxLinks = maxLinks, maxDetected = maxDetected,
                         NDailyCalls = dailyCalls_Vec, Npop = Npop,
                         propInfectedMax = propInfectedMax) %>%
             enlongate_matrix(., c("Infected", "maxCalls"), infectedSubsample)
+
 callsPlot <- dplyr::rename(callsLong, measure = maxCalls) %>%
   dplyr::mutate(Infected =Infected/ Npop) %>% 
   plot_phase_space(.) +
   ggtitle("Tracing speed") +
   theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold")) +
-  scale_x_continuous(breaks = c(0, 500, 1000), name =  "Maximum daily calls",
+  scale_x_continuous(breaks = c(0, 500, 1000),
+                     name = bquote("Maximum daily calls ("*N[calls]*")"),
                      expand = c(0,0))
 
 # Space plot for maximum number of links
@@ -235,7 +238,8 @@ linksPlot <- dplyr::rename(linksLong, measure = maxLinks) %>%
   plot_phase_space(.) +
   ggtitle("Social distancing") +
   theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold")) +
-  scale_x_continuous(breaks = c(10, 20), name =  "Maximum social links",
+  scale_x_continuous(breaks = c(10, 20),
+                     name = bquote("Maximum social links ("*L[max]*")"),
                      expand = c(0,0))
 
 # Space plot for pInfection 
@@ -248,7 +252,8 @@ infectionPlot <- dplyr::rename(infectionLong, measure = pInfection) %>%mutate(In
   plot_phase_space(.) +
   ggtitle("Hygiene measures") +
   theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold")) +
-  scale_x_continuous(breaks = c(0.15, 0.25), name = "Contact infectiousness",
+  scale_x_continuous(breaks = c(0.15, 0.25),
+                     name = bquote("Contact infectiousness ("*b[link]*")"),
                      expand = c(0,0))
 
 
