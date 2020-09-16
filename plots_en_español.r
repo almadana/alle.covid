@@ -1,5 +1,5 @@
 #plots en español - para GUIAD 
-
+require(ggpubr)
 # -------- FIGURA EFECTO ALLEE (1)--------------
 ###
 allee1D_esp <- ggplot(rdf, aes(x = Infected, y = R, color = model)) +
@@ -141,6 +141,58 @@ infectionPlot_es <- dplyr::rename(infectionLong, measure = pInfection) %>%mutate
   annotate("text",x=.26,y=.35,label="epidemia",size=fntSize,col="white")+
   annotate("text",x=.13,y=.35,label="control",size=fntSize,col="white")
 
+# dinámica de espacio-fase, relajación de NPIs
+
+x1 = 300
+x2 = 580
+y1 = .16
+y2 = .3
+y1bis = .05
+xOffset = 25
+yOffset= 15
+colSquare = "yellow"
+colLine = "white"
+linSquare="dashed"
+linLine = "dotted"
+fontSize = 3
+xLim = c(0,800)
+yLim = c(0,.5)
+
+
+npi.upper.plot = detectedPlot_esp + scale_x_continuous(breaks = c(0, 400, 800), 
+                                                   labels = c("","",""),
+                                                   expand = c(0,0),
+                                                   limits = xLim) +
+  scale_y_continuous(expand=c(0,0),limits=yLim)+
+  ggtitle("") +
+  labs(x="Fuerza de las InF",y="Proporción de infectados",title = "Relajamiento de las medidas")+
+  
+  theme(#axis.title.y=element_blank(),
+    legend.key.size = unit(.5,"cm"),
+    legend.text = element_text(size = 9),
+    legend.position = "right")+
+  annotate(geom="point",x=x1,y=y1,col=colSquare)+
+  annotate(geom="point",x=x2,y=y1,col=colSquare)+
+  annotate(geom="point",x=x1,y=y2,col=colSquare)+
+  annotate(geom="point",x=x2,y=y2,col=colSquare) + 
+  annotate(geom = "text",x=x2+xOffset,y1,label="italic(i)",size=fontSize,parse=T,hjust="outward",col=colSquare)+
+  annotate(geom = "text",x=x2+xOffset,y2,label="italic(iv)",size=fontSize,parse=T,hjust="outward",col=colSquare)+
+  annotate(geom = "text",x=x1-xOffset,y1,label="italic(ii)",size=fontSize,parse=T,hjust="outward",col=colSquare)+
+  annotate(geom = "text",x=x1-xOffset,y2,label="italic(iii)",size=fontSize,parse=T,hjust="outward",col=colSquare)+
+  annotate(geom="segment",x=x2,xend = x1+25,y=y1,yend=y1,col=colSquare,
+           arrow = arrow(length = unit(0.2, "cm"), ends = "last",type="closed"),linetype=linSquare) +
+  annotate(geom="segment",x=x1,xend = x2-25,y=y2,yend=y2,col=colSquare,
+           arrow = arrow(length = unit(0.2, "cm"), ends = "last",type = "closed"),linetype=linSquare)+
+  annotate(geom="segment",x=x1,xend = x1,y=y1,yend=y2-.02,col=colSquare,
+           arrow = arrow(length = unit(0.2, "cm"), ends = "last",type = "closed"),linetype=linSquare)+
+  annotate(geom="point",x=x1,y=y1bis,col=colLine)+
+  annotate(geom = "text",x=x1-xOffset,y1bis,label="italic(v)",size=fontSize,parse=T,hjust="outward",col=colLine)+
+  annotate(geom="segment",x=x2,xend = x1+xOffset,y=y1,yend=y1bis,col=colLine,
+           arrow = arrow(length = unit(0.2, "cm"), ends = "last",type="closed"),linetype=linLine) +
+  annotate("text",x=650,y=.05,label="control",size=fntSize,col="white")
+
+
+npi.upper.plot
 
 
 
@@ -161,10 +213,11 @@ infectionPlot_es <- dplyr::rename(infectionLong, measure = pInfection) %>%mutate
 #                          heights=c(1, 10))
 # 
 
-fig2_guiad = ggarrange(detectedPlot_esp,linksPlot_es,infectionPlot_es,nrow = 3, common.legend = T,labels = "AUTO")
+fig2_guiad = ggarrange(detectedPlot_esp,linksPlot_es,infectionPlot_es,npi.upper.plot
+,nrow = 4, common.legend = T,labels = "AUTO")
 
-ggsave("phase_space_guiad.pdf", fig2_guiad, width = 4, height = 8)
-ggsave("phase_space_guiad.png", fig2_guiad, width = 4, height = 8)
+ggsave("phase_space_guiad.pdf", fig2_guiad, width = 4, height = 10)
+ggsave("phase_space_guiad.png", fig2_guiad, width = 4, height = 10)
 
 
 #-------- fig condados y países -------------
