@@ -383,12 +383,12 @@ arrowDf <- data.frame(Ii = c(point1 - 30, point1 + 100, Npop - 100),
 
 thresholdText <- c("Epidemic \nthreshold")
 immunityText <- c("Population \nimmunity")
-
+threshold_I_Text <- c("\nI*")
 
 allee1D <- ggplot(rdf, aes(x = Infected, y = R, color = model)) +
   geom_line(size = 1) +
   scale_color_manual(values = c("#b33018", "#14b74b"), name = "SIR Model",
-                     labels = c("with NPIs", "without NPIs")) +
+                     labels = c("with NPI-Allee effect", "without NPI-Allee effect")) +
   geom_hline(yintercept = 1, size = 1, linetype = "dashed") +
   geom_segment(aes(x = point1, xend = point1, y = 0, yend = 2), color = "red",
                linetype = "dashed") +
@@ -405,8 +405,9 @@ allee1D <- ggplot(rdf, aes(x = Infected, y = R, color = model)) +
   #geom_text(aes(x = point1+50, y = 0.7), label = thresholdText, color = "black",
             #hjust = "inward", family = "sans", fontface = "plain", ) +
   annotate("text", x=point1+50, y=0.7, label=thresholdText, size=3.2, hjust="inward") +
+  annotate("text", x=point1+370, y=0.7, label=threshold_I_Text, size=3.2, hjust="inward",fontface="italic") +
   annotate("text", x=point2, y=0.7, label=immunityText, size=3.2, hjust="inward") +
-  annotate("text",x=point1+100,y=2.5,label="Allee effect \n (saturation of NPIs)",size=3,hjust="center") +
+  #annotate("text",x=point1+100,y=2.5,label="Allee effect \n (saturation of NPIs)",size=3,hjust="center") +
 #  geom_text(aes(x = point2, y = 0.7), label = immunityText, color = "black",
  #           hjust = "inward", family = "sans", fontface = "plain" ) +
   theme_classic() +
