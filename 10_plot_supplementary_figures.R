@@ -109,7 +109,7 @@ for (dataType in names(dataFits)) {
     
   figureSupp4 <- ggarrange(slopeI_hist, slopeF_hist, breakPointInfected_hist,
                    slopeI_Pop_plot, slopeF_Pop_plot, breakPoint_Pop_plot,
-                   widths = c(4,3), labels = "auto")
+                   widths = c(4,3), labels = "AUTO")
 
   ggsave(figureSupp4, file = fileName, width = 9, height = 5, units = "in")
 }
@@ -232,7 +232,7 @@ for (dataType in names(dataFits)) {
 }
 
 figWeightEvid <- ggarrange(dataEvidPlot$counties, dataEvidPlot$countries,
-                           labels = "auto", nrow = 1)
+                           labels = "AUTO", nrow = 1)
 
 ggsave(figWeightEvid, file = "./plots/S6_weight_evidence_data.png",
        width = 8, height = 4, units = "in")
@@ -269,7 +269,7 @@ countriesR2 <- countriesFit %>%
 
 
 figR2 <- ggarrange(dataEvidPlot$counties, dataEvidPlot$countries,
-                   countiesR2, countriesR2, labels = "auto", nrow = 2,
+                   countiesR2, countriesR2, labels = "AUTO", nrow = 2,
                    ncol = 2)
 
 ggsave(figR2, file = "./plots/R2_of_fit.png",

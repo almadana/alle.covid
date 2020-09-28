@@ -11,7 +11,7 @@ fig2 <- ggarrange(scatterCountiesPlot,
                   scatterCountriesPlot,
                   dynamicsPlots$countriesDyn,
                   widths = c(4,4),
-                  labels = "auto")
+                  labels = "AUTO")
 
 ggsave(fig2, file="./plots/fig2.png", width=10, height=6.5, units = "in")
 ggsave(fig2, file="./plots/fig2.pdf", width=10, height=6.5, units = "in")
