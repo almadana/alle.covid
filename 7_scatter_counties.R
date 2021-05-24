@@ -8,7 +8,7 @@ library(ggrepel)
 nExamples <- 8
 
 # load data
-countiesFit <- readRDS("./generated_data/countiesFit.RDS") %>%
+#countiesFit <- readRDS("./generated_data/countiesFit.RDS") %>%
   dplyr::mutate(., slopeRatio = slopeF / slopeI)
 
 simFit <- readRDS("./generated_data/SIR_dynamics_fit.RDS") %>%
