@@ -9,8 +9,8 @@ library(segmented)
 library(gridExtra)
 
 set.seed(2691)
-nPlotDyn <- 4
-nCols <- 2
+nPlotDyn <- 9
+nCols <- 3
 
 dynamicsData <- readRDS("./generated_data/SIR_dynamics_simulation.RDS") %>%
   as_tibble(.)
