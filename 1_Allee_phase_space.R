@@ -18,10 +18,160 @@ library(dplyr)
 library(gridExtra)
 library(cowplot)
 library(gtable)
-library(gridExtra)
-library(ggpubr)
 
-source("./functions_static_model.R")
+#########
+# ---- Basic model functions ----
+########
+
+# function of effective social links by day
+links_fun <- function(maxLinks, day){
+  return(maxLinks * (day^4) / (day^4 + 7^4))
+}
+
+# calculate the expected number of links of detected individuals
+expected_links <- function(maxLinks, pContact){
+  days <- c(0:20)
+  pDay <- dgeom(days, pContact)
+  pDay[length(pDay)] <- 1 - sum(pDay[1:(length(pDay)-1)])
+  links <- links_fun(maxLinks, days)
+  expectedLinks <- sum(pDay * links)
+  return(expectedLinks)
+}
+
+# calculate Rt for given parameters
+calculate_Rt <- function(maxDetected, maxLinks, Infected, pCall, NDailyCalls,
+                   pInfection, Npop){
+  # Expected number of detected individuals
+  pDetected <- maxDetected / (maxDetected + Infected)
+  NDetected <- pDetected * Infected
+  # Daily probability that a detected individual is contacted
+  pContact <- 1 - (1-pCall)^(NDailyCalls/NDetected)
+  # Number of expected social links for detected individuals
+  detectedLinks <- expected_links(maxLinks, pContact)
+  # Probability that a contact of an infected is susceptible
+  pSusceptible<- (Npop - Infected - 1) / (Npop - 1)
+  # Rt calculation
+  Rt <- pSusceptible * pInfection * (pDetected*detectedLinks + (1-pDetected)*maxLinks)
+  return(Rt)
+}
+
+# calculates Rt for a vector of values of Infected
+calculate_Rt_range <- function(maxDetected, maxLinks, Infected, pCall,
+                               NDailyCalls, pInfection, Npop){
+  RtVec <- vector()
+  for (i in c(1:length(Infected))) {
+    RtVec[i] <- calculate_Rt(maxDetected, maxLinks, Infected[i], pCall,
+                             NDailyCalls, pInfection, Npop)
+  }
+  return(RtVec)
+}
+
+##############################
+# --- Functions that generate phase space -----
+#############################
+
+### Calculate Rt for a varying number of detection capacity
+Rt_detected <- function(maxLinks, maxDetected, pCall,  pInfection,
+                     NDailyCalls, Npop, propInfectedMax = 1){
+  infected <- c(1:round(Npop*propInfectedMax))
+  RtSpace <- matrix(NA, ncol=length(maxDetected), nrow=length(infected))
+  for(md in c(1:length(maxDetected))) {
+    RtSpace[,md] <-  calculate_Rt_range(maxDetected=maxDetected[md],
+                                        maxLinks=maxLinks, Infected=infected,
+                                        pCall=pCall,
+                                        NDailyCalls=NDailyCalls,
+                                        pInfection=pInfection,
+                                        Npop=Npop)
+  }
+  colnames(RtSpace) <- maxDetected
+  rownames(RtSpace) <- infected
+  return(RtSpace)
+}
+
+
+### Calculate Rt for a varying number of daily calls
+Rt_calls <- function(maxLinks, maxDetected, pCall,  pInfection,
+                     NDailyCalls, Npop, propInfectedMax = 1){
+  infected <- c(1:round(Npop*propInfectedMax))
+  RtSpace <- matrix(NA, ncol=length(NDailyCalls), nrow=length(infected))
+  for(nc in c(1:length(NDailyCalls))) {
+    RtSpace[,nc] <-  calculate_Rt_range(maxDetected=maxDetected,
+                                        maxLinks=maxLinks, Infected=infected,
+                                        pCall=pCall,
+                                        NDailyCalls=NDailyCalls[nc],
+                                        pInfection=pInfection,
+                                        Npop=Npop)
+  }
+  colnames(RtSpace) <- NDailyCalls
+  rownames(RtSpace) <- infected
+  return(RtSpace)
+}
+
+
+### Calculate Rt for a varying number of maximum contacts
+Rt_links <- function(maxLinks, maxDetected, pCall,  pInfection,
+                     NDailyCalls, Npop, propInfectedMax = 1){
+  infected <- c(1:round(Npop*propInfectedMax))
+  RtSpace <- matrix(NA, ncol=length(maxLinks), nrow=length(infected))
+  for(ml in c(1:length(maxLinks))) {
+    RtSpace[,ml] <-  calculate_Rt_range(maxDetected=maxDetected,
+                                        maxLinks=maxLinks[ml], Infected=infected,
+                                        pCall=pCall,
+                                        NDailyCalls=NDailyCalls,
+                                        pInfection=pInfection,
+                                        Npop=Npop)
+  }
+  colnames(RtSpace) <- maxLinks
+  rownames(RtSpace) <- infected
+  return(RtSpace)
+}
+
+### Calculate Rt for a varying number of probability of infectious close contact
+Rt_pInfection <- function(maxLinks, maxDetected, pCall,  pInfection,
+                     NDailyCalls, Npop, propInfectedMax = 1){
+  infected <- c(1:round(Npop*propInfectedMax))
+  RtSpace <- matrix(NA, ncol=length(pInfection), nrow=length(infected))
+  for(pI in c(1:length(pInfection))) {
+    RtSpace[,pI] <-  calculate_Rt_range(maxDetected=maxDetected,
+                                        maxLinks=maxLinks, Infected=infected,
+                                        pCall=pCall,
+                                        NDailyCalls=NDailyCalls,
+                                        pInfection=pInfection[pI],
+                                        Npop=Npop)
+  }
+  colnames(RtSpace) <- pInfection
+  rownames(RtSpace) <- infected
+  return(RtSpace)
+}
+
+# Enlongate and subsample matrix, and binarize, to draw raster in ggplot
+# varNames is the names of the columns
+# infectedSubsample indicates to keep 1 of every infectedSumsample infected values
+enlongate_matrix <- function(inputMatrix, varNames, infectedSubsample) {
+  longDF <- melt.array(inputMatrix, varnames = varNames) %>%
+    dplyr::rename(., Rt = value) %>%
+    dplyr::mutate(., Rt_exp = as.factor(as.integer(Rt > 1))) %>%
+    as_tibble(.) %>%
+    dplyr::filter(., (Infected %% infectedSubsample) == 0)
+  return(longDF)
+}
+
+# plot 2D
+plot_phase_space <- function(inputDF, reverse = FALSE){
+  spacePlot <- ggplot(inputDF, aes(x = measure, y = Infected, fill = Rt_exp)) +
+    geom_raster() +
+    scale_fill_manual(values = c("#243faf", "#fa3d1b"),
+                      name = element_blank(), labels = c(bquote(R[e]<1~"(Containment)"),
+                                                         bquote(R[e]>1~" (Outbreak)"))) +
+    scale_y_continuous(name = "Proportion infected", expand = c(0,0),
+                       limits = c(0,.8), breaks = c(0, 0.4, 0.8)) +
+    theme_bw()
+  if (reverse) {
+    spacePlot <- spacePlot +
+      scale_x_reverse(name = xName, expand = c(0,0))
+  }
+  return(spacePlot)
+}
 
 
 ###############################
@@ -45,9 +195,8 @@ maxLinks_Vec <- seq(2, 30, 0.1)
 pInfection_Vec <- seq(0.1, 0.3, 0.0015)
 
 # Space plot for maximum number of people that can be detected
-detectedLong <- Rt_detected(maxLinks=maxLinks, maxDetected=maxDetected_Vec,
-                            I50=maxDetected_Vec, pCall=pCall,
-                            pInfection = pInfection,
+detectedLong <- Rt_detected(maxLinks = maxLinks, maxDetected = maxDetected_Vec,
+                        pCall = pCall, pInfection = pInfection,
                         NDailyCalls = NDailyCalls, Npop = Npop,
                         propInfectedMax = propInfectedMax) %>%
                 enlongate_matrix(., c("Infected", "maxDetected"), infectedSubsample)
@@ -64,7 +213,6 @@ detectedPlot <- dplyr::rename(detectedLong, measure = maxDetected) %>%
 
 # Space plot for maximum number of calls (speed of detection)
 callsLong <- Rt_calls(maxLinks = maxLinks, maxDetected = maxDetected,
-                      I50=maxDetected,
                         pCall = pCall, pInfection = pInfection,
                         NDailyCalls = dailyCalls_Vec, Npop = Npop,
                         propInfectedMax = propInfectedMax) %>%
@@ -81,7 +229,7 @@ callsPlot <- dplyr::rename(callsLong, measure = maxCalls) %>%
 
 # Space plot for maximum number of links
 linksLong <- Rt_links(maxLinks = maxLinks_Vec, maxDetected = maxDetected,
-                        I50=maxDetected, pCall = pCall, pInfection = pInfection,
+                        pCall = pCall, pInfection = pInfection,
                         NDailyCalls = NDailyCalls, Npop = Npop,
                         propInfectedMax = propInfectedMax) %>% 
             enlongate_matrix(., c("Infected", "maxLinks"), infectedSubsample)
@@ -96,8 +244,7 @@ linksPlot <- dplyr::rename(linksLong, measure = maxLinks) %>%
 
 # Space plot for pInfection 
 infectionLong <- Rt_pInfection(maxLinks = maxLinks, maxDetected = maxDetected,
-                               I50=maxDetected, pCall = pCall,
-                               pInfection = pInfection_Vec,
+                        pCall = pCall, pInfection = pInfection_Vec,
                         NDailyCalls = NDailyCalls, Npop = Npop,
                         propInfectedMax = propInfectedMax) %>%
             enlongate_matrix(., c("Infected", "pInfection"), infectedSubsample)
@@ -189,6 +336,11 @@ npi.upper.plot = detectedPlot + scale_x_continuous(breaks = c(0, 400, 800),
            arrow = arrow(length = unit(0.2, "cm"), ends = "last",type="closed"),linetype=linLine)
 
 
+npi.upper.plot
+ggsave("./plots/fig4_2021.png", npi.upper.plot, width = 6, height = 4, units = "in")
+
+
+
 #npi.lower.plot = npi.upper.plot
 
 #grid.arrange(npi.upper.plot,npi.lower.plot,ncol=1,left="Proportion infected",bottom="Strength of NPIs")
@@ -197,35 +349,30 @@ npi.upper.plot = detectedPlot + scale_x_continuous(breaks = c(0, 400, 800),
 #----  plot 1d phase space ----
 ########################
 
-Infected <- c(1:2000)
-maxDetected <- 400
-I50 <- 400
+# Rt as function of infected individuals without allee
+logistic_R <- function(R0, Npop) {
+  I <- c(1:Npop)
+  R <- R0 * (Npop - I)/Npop
+  return(R)
+}
 
-maxDetected_logistic <- 0
-logisticR <- calculate_Rt(maxDetected=maxDetected_logistic, I50=I50,
-                      maxLinks=maxLinks, Infected=Infected,
-                      pCall=pCall, NDailyCalls=NDailyCalls,
-                      pInfection=pInfection, Npop=Npop)
+# Rt as function of infected individuals with allee
+allee_R <- function(R0, Npop, I50) {
+  I <- c(1:Npop)
+  R <- R0 * (Npop - I)/Npop * I / (I + I50)
+  return(R)
+}
 
-I50_w <- 800
-weakAlleeR <- calculate_Rt(maxDetected=maxDetected, I50=I50_w,
-                      maxLinks=maxLinks, Infected=Infected,
-                      pCall=pCall, NDailyCalls=NDailyCalls,
-                      pInfection=pInfection, Npop=Npop)
+lR <- logistic_R(3.5, 2000)
+aR <- allee_R(3.5, 2000, 200)
 
-alleeR <- calculate_Rt(maxDetected=maxDetected, I50=I50,
-                      maxLinks=maxLinks, Infected=Infected,
-                      pCall=pCall, NDailyCalls=NDailyCalls,
-                      pInfection=pInfection, Npop=Npop)
-
-rdf <- data.frame(Infected = c(1:2000), logisticR = logisticR, alleeR = alleeR, weakAlleeR = weakAlleeR) %>%
-  tidyr::pivot_longer(., cols = c("alleeR", "logisticR", "weakAlleeR"), names_to = "model",
-                      values_to = "R") %>%
-  dplyr::mutate(., model=factor(model, levels=c("logisticR", "weakAlleeR", "alleeR")))
+rdf <- data.frame(Infected = c(1:2000), lR = lR, aR = aR) %>%
+  tidyr::pivot_longer(., cols = c("aR", "lR"), names_to = "model",
+                      values_to = "R")
 
 #--- plotting code to detect and signal thresholds and comment the plots----
 
-equilibriumPoints <- which(alleeR < 1)
+equilibriumPoints <- which(aR < 1)
 point1 <- which(diff(equilibriumPoints) == max(diff(equilibriumPoints)))
 point2 <- equilibriumPoints[point1+1]
 
@@ -242,9 +389,8 @@ threshold_I_Text <- c("\nI*")
 
 allee1D <- ggplot(rdf, aes(x = Infected, y = R, color = model)) +
   geom_line(size = 1) +
-  scale_color_manual(values = c("#14b74b", "black", "#b33018"), name = "",
-                     labels = c("no NPI-Allee effect",
-                                "weak NPI-Allee effect", "strong NPI-Allee effect")) +
+  scale_color_manual(values = c("#b33018", "#14b74b"), name = "SIR Model",
+                     labels = c("with NPI-Allee effect", "without NPI-Allee effect")) +
   geom_hline(yintercept = 1, size = 1, linetype = "dashed") +
   geom_segment(aes(x = point1, xend = point1, y = 0, yend = 2), color = "red",
                linetype = "dashed") +
@@ -253,26 +399,23 @@ allee1D <- ggplot(rdf, aes(x = Infected, y = R, color = model)) +
   geom_point(data = equilibriumDf, size = 4, color = "black") +
   geom_segment(data = dplyr::filter(arrowDf, direction == "right"),
                aes(x = Ii, xend = If, y = R, yend = R), color = "#fa3d1b",
-               arrow = arrow(length = unit(0.2, "cm")), size = 1.1) +
+               arrow = arrow(length = unit(0.3, "cm")), size = 1.1) +
   geom_segment(data = dplyr::filter(arrowDf, direction == "left"),
                aes(x = Ii, xend = If, y = R, yend = R), color =  "#243faf",
-               arrow = arrow(length = unit(0.2, "cm"), ends = "last"),
+               arrow = arrow(length = unit(0.3, "cm"), ends = "last"),
                size = 1.1) +
+  #geom_text(aes(x = point1+50, y = 0.7), label = thresholdText, color = "black",
+            #hjust = "inward", family = "sans", fontface = "plain", ) +
   annotate("text", x=point1+50, y=0.7, label=thresholdText, size=3.2, hjust="inward") +
   annotate("text", x=point1+370, y=0.7, label=threshold_I_Text, size=3.2, hjust="inward",fontface="italic") +
   annotate("text", x=point2, y=0.7, label=immunityText, size=3.2, hjust="inward") +
+  #annotate("text",x=point1+100,y=2.5,label="Allee effect \n (saturation of NPIs)",size=3,hjust="center") +
+#  geom_text(aes(x = point2, y = 0.7), label = immunityText, color = "black",
+ #           hjust = "inward", family = "sans", fontface = "plain" ) +
   theme_classic() +
   scale_x_continuous(breaks = c(0, 1000, 2000), labels = c(0, 0.5, 1)) + 
   theme(legend.position = c(.7,.8),text=element_text(size=12)) 
 
 allee1D <- print(allee1D)
-
-ggsave("./plots/allee1D.png", allee1D, width = 15, height = 12, units = "cm")
-
-
-fig1_top_row = ggarrange(allee1D+theme(plot.margin=margin(8,8,8,8)), plotGrid,nrow=1,labels="AUTO")
-
-ggsave("./plots/fig1.png", fig1_top_row, width = 10, height = 4, units = "in")
-ggsave("./plots/fig1.pdf", fig1_top_row, width = 10, height = 4, units = "in")
-
+ggsave("./plots/allee1D.png", allee1D, width = 15, height = 9, units = "cm")
 
