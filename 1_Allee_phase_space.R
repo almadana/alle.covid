@@ -21,24 +21,6 @@ library(gtable)
 source("./functions_static_model.R")
 
 
-# plot 2D
-plot_phase_space <- function(inputDF, reverse = FALSE){
-  spacePlot <- ggplot(inputDF, aes(x = measure, y = Infected, fill = Rt_exp)) +
-    geom_raster() +
-    scale_fill_manual(values = c("#243faf", "#fa3d1b"),
-                      name = element_blank(), labels = c(bquote(R[e]<1~"(Containment)"),
-                                                         bquote(R[e]>1~" (Outbreak)"))) +
-    scale_y_continuous(name = "Proportion infected", expand = c(0,0),
-                       limits = c(0,.8), breaks = c(0, 0.4, 0.8)) +
-    theme_bw()
-  if (reverse) {
-    spacePlot <- spacePlot +
-      scale_x_reverse(name = xName, expand = c(0,0))
-  }
-  return(spacePlot)
-}
-
-
 ###############################
 # ---- Make the space plots -----
 ###############################
