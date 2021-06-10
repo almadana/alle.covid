@@ -29,14 +29,14 @@ source("./functions_static_model.R")
 ###############################
 
 # general parameters
-pCall <- 0.15
+pCall <- 0.1
 pInfection <- 0.2
 Npop <- 2000
 maxLinks <- 14
 propInfectedMax <- 1
 NDailyCalls <- 800
 infectedSubsample <- 3
-maxDetected <- 600
+maxDetected <- 200
 
 # ranges for 
 maxDetected_Vec <- seq(0, 1000, 5)
@@ -117,7 +117,7 @@ legendPlot <- detectedPlot + theme(legend.position = "bottom",
                                    legend.text = element_text(size = 9))
 legend <- gtable_filter(ggplotGrob(legendPlot), "guide-box")
 
-plotGrid <- grid.arrange(
+space2Dplots <- grid.arrange(
                      arrangeGrob(detectedPlot + theme(legend.position="none",
                                                       axis.title.y=element_blank(),
                                                       plot.margin=margin(8,8,8,8)),
@@ -135,7 +135,7 @@ plotGrid <- grid.arrange(
                      )
 
 
-ggsave("./plots/phase_space.png", plotGrid, width = 15, height = 13, units = "cm")
+ggsave("./plots/phase_space.png", space2Dplots, width = 15, height = 13, units = "cm")
 
 
 ######
@@ -193,86 +193,88 @@ npi.upper.plot = detectedPlot + scale_x_continuous(breaks = c(0, 400, 800),
 
 #grid.arrange(npi.upper.plot,npi.lower.plot,ncol=1,left="Proportion infected",bottom="Strength of NPIs")
 
+
 ########################
 #----  plot 1d phase space ----
 ########################
 
-Infected <- c(1:2000)
-maxDetected <- 400
-I50 <- 400
+# general parameters
+pCall <- 0.1
+pInfection <- 0.2
+Npop <- 2000
+maxLinks <- 14
+propInfectedMax <- 1
+NDailyCalls <- 800
+infectedSubsample <- 3
+maxDetected <- 200
 
+I50 <- 200
+I50_w <- 400
 maxDetected_logistic <- 0
+Infected <- c(1:2000)
+
 logisticR <- calculate_Rt(maxDetected=maxDetected_logistic, I50=I50,
                       maxLinks=maxLinks, Infected=Infected,
                       pCall=pCall, NDailyCalls=NDailyCalls,
                       pInfection=pInfection, Npop=Npop)
-
-I50_w <- 800
 weakAlleeR <- calculate_Rt(maxDetected=maxDetected, I50=I50_w,
                       maxLinks=maxLinks, Infected=Infected,
                       pCall=pCall, NDailyCalls=NDailyCalls,
                       pInfection=pInfection, Npop=Npop)
-
 alleeR <- calculate_Rt(maxDetected=maxDetected, I50=I50,
                       maxLinks=maxLinks, Infected=Infected,
                       pCall=pCall, NDailyCalls=NDailyCalls,
                       pInfection=pInfection, Npop=Npop)
 
-rdf <- data.frame(Infected = c(1:2000), logisticR = logisticR, alleeR = alleeR, weakAlleeR = weakAlleeR) %>%
+infRdf <- data.frame(Infected = c(1:2000), logisticR = logisticR, alleeR = alleeR, weakAlleeR = weakAlleeR) %>%
   tidyr::pivot_longer(., cols = c("alleeR", "logisticR", "weakAlleeR"), names_to = "model",
                       values_to = "R") %>%
   dplyr::mutate(., model=factor(model, levels=c("logisticR", "weakAlleeR", "alleeR")))
 
-#--- plotting code to detect and signal thresholds and comment the plots----
-
+# Find equilibrum points and put into dataframe to use in plot 
 equilibriumPoints <- which(alleeR < 1)
 point1 <- which(diff(equilibriumPoints) == max(diff(equilibriumPoints)))
 point2 <- equilibriumPoints[point1+1]
 
 equilibriumDf <- data.frame(Infected = c(point1, point2), R = c(1, 1),
                                type = c("unstable", "stable"))
-arrowDf <- data.frame(Ii = c(point1 - 30, point1 + 100, Npop - 100),
-                      If = c(-60, point2 - 200, point2 + 100),
+arrowDf <- data.frame(Ii = c(point1-45, point1+120, Npop-100),
+                      If = c(-60, point2-240, point2+100),
                       direction = c("left", "right", "left"),
-                      R = 1.15)
+                      R = 1.1)
 
 thresholdText <- c("Epidemic \nthreshold")
 immunityText <- c("Population \nimmunity")
-threshold_I_Text <- c("\nI*")
+#threshold_I_Text <- c("\nI*")
 
-allee1D <- ggplot(rdf, aes(x = Infected, y = R, color = model)) +
-  geom_line(size = 1) +
-  scale_color_manual(values = c("#14b74b", "black", "#b33018"), name = "",
-                     labels = c("no NPI-Allee effect",
+allee1D <- ggplot(infRdf, aes(x=Infected, y=R, color=model)) +
+  geom_line(size=1) +
+  scale_color_manual(values=c("#14b74b", "black", "#b33018"), name="",
+                     labels=c("no NPI-Allee effect",
                                 "weak NPI-Allee effect", "strong NPI-Allee effect")) +
-  geom_hline(yintercept = 1, size = 1, linetype = "dashed") +
-  geom_segment(aes(x = point1, xend = point1, y = 0, yend = 2), color = "red",
-               linetype = "dashed") +
+  geom_hline(yintercept=1, size=1, linetype="dashed") +
+  geom_segment(aes(x=point1, xend=point1, y=0, yend=2), color="red",
+               linetype="dashed") +
   xlab("Proportion infected") +
   ylab(bquote('Reproductive number ' ~R[e] )) +
-  geom_point(data = equilibriumDf, size = 4, color = "black") +
-  geom_segment(data = dplyr::filter(arrowDf, direction == "right"),
-               aes(x = Ii, xend = If, y = R, yend = R), color = "#fa3d1b",
-               arrow = arrow(length = unit(0.2, "cm")), size = 1.1) +
-  geom_segment(data = dplyr::filter(arrowDf, direction == "left"),
-               aes(x = Ii, xend = If, y = R, yend = R), color =  "#243faf",
-               arrow = arrow(length = unit(0.2, "cm"), ends = "last"),
-               size = 1.1) +
+  geom_point(data=equilibriumDf, size=4, color="black") +
+  geom_segment(data=dplyr::filter(arrowDf, direction == "right"),
+               aes(x=Ii, xend=If, y=R, yend=R), color="#fa3d1b",
+               arrow=arrow(length=unit(0.2, "cm")), size=0.9) +
+  geom_segment(data=dplyr::filter(arrowDf, direction == "left"),
+               aes(x=Ii, xend=If, y=R, yend=R), color= "#243faf",
+               arrow=arrow(length=unit(0.2, "cm"), ends="last"), size=0.9) +
   annotate("text", x=point1+50, y=0.7, label=thresholdText, size=3.2, hjust="inward") +
-  annotate("text", x=point1+370, y=0.7, label=threshold_I_Text, size=3.2, hjust="inward",fontface="italic") +
+  #annotate("text", x=point1+370, y=0.7, label=threshold_I_Text, size=3.2, hjust="inward",fontface="italic") +
   annotate("text", x=point2, y=0.7, label=immunityText, size=3.2, hjust="inward") +
   theme_classic() +
-  scale_x_continuous(breaks = c(0, 1000, 2000), labels = c(0, 0.5, 1)) + 
-  theme(legend.position = c(.7,.8),text=element_text(size=12)) 
-
-allee1D <- print(allee1D)
+  scale_x_continuous(breaks=c(0, 1000, 2000), labels=c(0, 0.5, 1)) + 
+  theme(legend.position=c(.7,.8),text=element_text(size=12)) 
 
 ggsave("./plots/allee1D.png", allee1D, width = 15, height = 12, units = "cm")
 
 
-fig1_top_row = ggarrange(allee1D+theme(plot.margin=margin(8,8,8,8)), plotGrid,nrow=1,labels="AUTO")
-
-ggsave("./plots/fig1.png", fig1_top_row, width = 10, height = 4, units = "in")
-ggsave("./plots/fig1.pdf", fig1_top_row, width = 10, height = 4, units = "in")
-
+fig1_top_row = ggarrange(allee1D+theme(plot.margin=margin(8,8,8,8)),
+                         space2Dplots, nrow=1,labels="AUTO")
+ggsave("./plots/fig1.png", fig1_top_row, width=10, height=4, units="in")
 

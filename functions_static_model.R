@@ -21,7 +21,7 @@ expected_links <- function(maxLinks, pContact){
 
 # calculate Rt for given parameters
 calculate_Rt <- function(maxDetected, I50, maxLinks, Infected, pCall,
-                         NDailyCalls, pInfection, Npop){
+                         NDailyCalls, pInfection, Npop, propVac=0){
   # Expected number of detected individuals
   pDetected <- maxDetected / (I50 + Infected)
   NDetected <- pDetected * Infected
@@ -30,7 +30,9 @@ calculate_Rt <- function(maxDetected, I50, maxLinks, Infected, pCall,
   # Number of expected social links for detected individuals
   detectedLinks <- expected_links(maxLinks, pContact)
   # Probability that a contact of an infected is susceptible
-  pSusceptible<- (Npop - Infected - 1) / (Npop - 1)
+  nSusceptible <- Npop - Infected - round(Npop*propVac)
+  nSusceptible[nSusceptible<1] <- 1
+  pSusceptible <- (nSusceptible - 1) / (Npop - 1)
   # Rt calculation
   Rt <- pSusceptible * pInfection * (pDetected*detectedLinks + (1-pDetected)*maxLinks)
   return(Rt)
