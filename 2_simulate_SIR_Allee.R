@@ -17,7 +17,7 @@ maxI <- 2000
 popSizeStatsCounties <- c(mean = 5.2, sd = 0.5)
 #popSizeStatsCountries <- c(mean = 7.1, sd = 0.5)
 # epidemic values
-p_se <- 0.8 # 1 es sin subexponencial
+p_se <- 1 # 1 es sin subexponencial
 I50 <- 20
 betaMax <- 0.5
 gammaMax <- 4
@@ -37,12 +37,14 @@ SIR_Allee <- function(I0, betaMax=1.4, gammaMax=5, p, durSim,
   S <- rep(NA, durSim)
   I <- rep(NA, durSim)
   R <- rep(NA, durSim)
+  Dprop <- rep(NA, durSim)
   newI <- rep(NA, durSim)
   Imported <- rep(NA, durSim)
   # assign initial values
   S[1] <- Nsus
   I[1] <- I0
   R[1] <- 0
+  Dprop[1] <- 0
   newI[1] <- 0
   Imported[1] <- 0
   Npop <- Nsus + I0
@@ -66,6 +68,7 @@ SIR_Allee <- function(I0, betaMax=1.4, gammaMax=5, p, durSim,
     # get expected changes 
     newIExpected <- beta * S[t-1] * (I[t-1])^p / Npop
     recoveredIExpected <- (1/gamma) * I[t-1]
+    selfRecoveredExpected <- (1/gammaMax) * I[t-1]
     # sample the actual changes from random variables
     newISample <- rpois(n = 1, lambda  = newIExpected)
     newI[t] <- min(newISample, S[t-1]) # ensure no more new infections than susceptible
@@ -76,11 +79,12 @@ SIR_Allee <- function(I0, betaMax=1.4, gammaMax=5, p, durSim,
     S[t] <- S[t-1] - newI[t]
     I[t] <- I[t-1] + newI[t] + Imported[t] - recoveredI
     R[t] <- R[t-1] + recoveredI
+    Dprop[t] <- (recoveredIExpected - selfRecoveredExpected)/recoveredIExpected
     #out[i,]<-c(out[t-1,1]-new.I, out[t-1,2]+new.I-recoveredI+imported,out[t-1,3]+recoveredI, new.I, imported)
-    }
+  }
   # store results in dataframe
-  out <- data.frame(t = c(1:length(S)), S = S, I = I, R = R,
-                    newI = newI, Imported = Imported)
+  out <- data.frame(t=c(1:length(S)), S=S, I=I, R=R, D=Dprop,
+                    newI=newI, Imported=Imported)
   return(out)
 }
 
