@@ -18,6 +18,7 @@ library(dplyr)
 library(gridExtra)
 library(cowplot)
 library(gtable)
+library(ggpubr)
 source("./functions_static_model.R")
 
 
@@ -34,22 +35,23 @@ propInfectedMax <- 1
 NDailyCalls <- 800
 infectedSubsample <- 3
 maxDetected <- 200
+I50 <- 200
 
 # ranges for 
-maxDetected_Vec <- seq(0, 1000, 5)
+maxDetected_Vec <- seq(0, 800, 5)
 dailyCalls_Vec <- seq(20, 1500, 5)
 maxLinks_Vec <- seq(2, 30, 0.1)
 pInfection_Vec <- seq(0.1, 0.3, 0.0015)
 
 # Space plot for maximum number of people that can be detected
-detectedLong <- Rt_detected(maxLinks = maxLinks, maxDetected = maxDetected_Vec,
-                        pCall = pCall, pInfection = pInfection,
-                        NDailyCalls = NDailyCalls, Npop = Npop,
-                        propInfectedMax = propInfectedMax) %>%
+detectedLong <- Rt_detected(maxLinks=maxLinks, maxDetected=maxDetected_Vec,
+                            I50=I50, pCall=pCall,
+                            pInfection=pInfection, NDailyCalls=NDailyCalls,
+                            Npop=Npop, propInfectedMax=propInfectedMax) %>%
                 enlongate_matrix(., c("Infected", "maxDetected"), infectedSubsample)
 
-detectedPlot <- dplyr::rename(detectedLong, measure = maxDetected) %>%
-  dplyr::mutate(Infected =Infected/ Npop) %>% 
+detectedPlot <- dplyr::rename(detectedLong, measure=maxDetected) %>%
+  dplyr::mutate(Infected=Infected/Npop) %>% 
   plot_phase_space(.) +
   ggtitle("Tracing capacity") +
   theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"),
@@ -59,10 +61,10 @@ detectedPlot <- dplyr::rename(detectedLong, measure = maxDetected) %>%
                      expand = c(0,0))
 
 # Space plot for maximum number of calls (speed of detection)
-callsLong <- Rt_calls(maxLinks = maxLinks, maxDetected = maxDetected,
-                        pCall = pCall, pInfection = pInfection,
-                        NDailyCalls = dailyCalls_Vec, Npop = Npop,
-                        propInfectedMax = propInfectedMax) %>%
+callsLong <- Rt_calls(maxLinks=maxLinks, maxDetected=maxDetected,
+                      I50=I50, pCall=pCall, pInfection=pInfection,
+                      NDailyCalls=dailyCalls_Vec, Npop=Npop,
+                      propInfectedMax=propInfectedMax) %>%
             enlongate_matrix(., c("Infected", "maxCalls"), infectedSubsample)
 
 callsPlot <- dplyr::rename(callsLong, measure = maxCalls) %>%
@@ -75,10 +77,10 @@ callsPlot <- dplyr::rename(callsLong, measure = maxCalls) %>%
                      expand = c(0,0))
 
 # Space plot for maximum number of links
-linksLong <- Rt_links(maxLinks = maxLinks_Vec, maxDetected = maxDetected,
-                        pCall = pCall, pInfection = pInfection,
-                        NDailyCalls = NDailyCalls, Npop = Npop,
-                        propInfectedMax = propInfectedMax) %>% 
+linksLong <- Rt_links(maxLinks=maxLinks_Vec, maxDetected=maxDetected,
+                      I50=I50, pCall=pCall, pInfection=pInfection,
+                      NDailyCalls=NDailyCalls, Npop=Npop,
+                      propInfectedMax=propInfectedMax) %>% 
             enlongate_matrix(., c("Infected", "maxLinks"), infectedSubsample)
 linksPlot <- dplyr::rename(linksLong, measure = maxLinks) %>%
   dplyr::mutate(Infected =Infected/ Npop) %>% 
@@ -90,10 +92,11 @@ linksPlot <- dplyr::rename(linksLong, measure = maxLinks) %>%
                      expand = c(0,0))
 
 # Space plot for pInfection 
-infectionLong <- Rt_pInfection(maxLinks = maxLinks, maxDetected = maxDetected,
-                        pCall = pCall, pInfection = pInfection_Vec,
-                        NDailyCalls = NDailyCalls, Npop = Npop,
-                        propInfectedMax = propInfectedMax) %>%
+infectionLong <- Rt_pInfection(maxLinks=maxLinks, maxDetected=maxDetected,
+                               I50=I50, pCall=pCall,
+                               pInfection=pInfection_Vec,
+                               NDailyCalls=NDailyCalls, Npop=Npop,
+                               propInfectedMax=propInfectedMax) %>%
             enlongate_matrix(., c("Infected", "pInfection"), infectedSubsample)
 infectionPlot <- dplyr::rename(infectionLong, measure = pInfection) %>%mutate(Infected =Infected/ Npop) %>% 
   plot_phase_space(.) +
@@ -129,7 +132,7 @@ space2Dplots <- grid.arrange(
                      )
 
 
-ggsave("./plots/phase_space.png", space2Dplots, width = 15, height = 13, units = "cm")
+ggsave("./plots/phase_space.pdf", space2Dplots, width = 15, height = 13, units = "cm")
 
 
 ######
@@ -184,7 +187,7 @@ npi.upper.plot = detectedPlot + scale_x_continuous(breaks = c(0, 400, 800),
 
 
 npi.upper.plot
-ggsave("./plots/fig4_2021.png", npi.upper.plot, width = 6, height = 4, units = "in")
+ggsave("./plots/fig4_2021.pdf", npi.upper.plot, width = 6, height = 4, units = "in")
 
 
 
@@ -238,10 +241,17 @@ point2 <- equilibriumPoints[point1+1]
 
 equilibriumDf <- data.frame(Infected = c(point1, point2), R = c(1, 1),
                                type = c("unstable", "stable"))
-arrowDf <- data.frame(Ii = c(point1-45, point1+120, Npop-100),
-                      If = c(-60, point2-240, point2+100),
-                      direction = c("left", "right", "left"),
-                      R = 1.1)
+# Df for 3 arrows
+#arrowDf <- data.frame(Ii = c(point1-45, point1+120, Npop-100),
+#                      If = c(-60, point2-240, point2+100),
+#                      direction = c("left", "right", "left"),
+#                      R = 1.1)
+# Df for 2 arrows
+arrowDf <- data.frame(Ii = c(point1-45, point1+45),
+                      If = c(point1-150, point1+150),
+                      direction = c("left", "right"),
+                      R = 1.07)
+
 
 thresholdText <- c("Epidemic \nthreshold")
 immunityText <- c("Population \nimmunity")
@@ -274,10 +284,153 @@ allee1D <- ggplot(infRdf, aes(x=Infected, y=R, color=model)) +
   scale_x_continuous(breaks=c(0, 1000, 2000), labels=c(0, 0.5, 1)) + 
   theme(legend.position=c(.7,.8),text=element_text(size=12)) 
 
-ggsave("./plots/allee1D.png", allee1D, width = 15, height = 12, units = "cm")
+ggsave("./plots/allee1D.pdf", allee1D, width = 15, height = 12, units = "cm")
 
 
-fig1_top_row = ggarrange(allee1D+theme(plot.margin=margin(8,8,8,8)),
+fig1_top_row = ggpubr::ggarrange(allee1D+theme(plot.margin=margin(8,8,8,8)),
                          space2Dplots, nrow=1,labels="AUTO")
-ggsave("./plots/fig1.png", fig1_top_row, width=10, height=4, units="in")
+ggsave("./plots/fig1.pdf", fig1_top_row, width=10, height=4, units="in")
+
+
+
+#####################
+# Get the proportion of undetected infections and
+# the time to testing changes as functions of I
+#####################
+
+# general parameters
+pCall <- 0.1
+pInfection <- 0.2
+Npop <- 2000
+maxLinks <- 14
+propInfectedMax <- 1
+NDailyCalls <- 800
+infectedSubsample <- 3
+maxDetected <- 200
+
+I50 <- 200
+I50_w <- 400
+maxDetected_logistic <- 0
+Infected <- c(1:2000)
+
+alleeR <- calculate_Rt(maxDetected=maxDetected, I50=I50,
+                      maxLinks=maxLinks, Infected=Infected,
+                      pCall=pCall, NDailyCalls=NDailyCalls,
+                      pInfection=pInfection, Npop=Npop)
+
+propFound <- calculate_proportion_found(maxDetected=maxDetected,
+                                        I50=I50, Infected=Infected,
+                                        pCall=pCall,
+                                        NDailyCalls=NDailyCalls)
+
+meanDay <- calculate_detection_time(maxDetected=maxDetected,
+                                        I50=I50, Infected=Infected,
+                                        pCall=pCall,
+                                        NDailyCalls=NDailyCalls)
+
+foundDf <- data.frame(Infected=Infected, R=alleeR, 
+                      propFound=propFound, notFound=Infected-Infected*propFound,
+                      time=meanDay)
+
+equilibriumPoints <- which(alleeR < 1)
+point1 <- which(diff(equilibriumPoints) == max(diff(equilibriumPoints)))
+point2 <- equilibriumPoints[point1+1]
+
+foundPlot <- ggplot(foundDf, aes(x=Infected, y=1-propFound)) +
+  geom_line(aes(color="Undetected infections")) +
+  geom_line(aes(y=R/max(alleeR), color="Re")) +
+  geom_hline(yintercept=1/max(alleeR), linetype="dashed", color="red") +
+  geom_vline(xintercept=point1, linetype="dashed", color="red") +
+#  ylab() +
+  scale_y_continuous(name="Proportion of undetected infections",
+                     sec.axis=sec_axis(~.*max(alleeR), name="Re")) +
+  scale_color_manual(name=element_blank(), values=c("red", "black")) +
+  theme_bw() +
+  theme(axis.title.y.right=element_text(color="red"),
+        axis.text.y.right=element_text(color="red"),
+        axis.line.y.right=element_line(colour="red"),
+        axis.ticks.y.right=element_line(colour="red"),
+        legend.position="top")
+
+timeFoundPlot <- ggplot(foundDf, aes(x=Infected, y=time)) +
+  geom_line(aes(color="Time of contact")) +
+  geom_line(aes(y=R/max(alleeR)*max(meanDay), color="Re")) +
+  geom_hline(yintercept=1/max(alleeR)*max(meanDay), linetype="dashed", color="red") +
+  geom_vline(xintercept=point1, linetype="dashed", color="red") +
+#  ylab() +
+  scale_y_continuous(name="Mean time to successful contact (days)",
+                     sec.axis=sec_axis(~.*max(alleeR)/max(meanDay), name="Re")) +
+  scale_color_manual(name=element_blank(), values=c("red", "black")) +
+  theme_bw() +
+  theme(axis.title.y.right=element_text(color="red"),
+        axis.text.y.right=element_text(color="red"),
+        axis.line.y.right=element_line(colour="red"),
+        axis.ticks.y.right=element_line(colour="red"),
+        legend.position="top")
+
+indicatorsPlot <- ggpubr::ggarrange(foundPlot, timeFoundPlot, nrow=1, ncol=2,
+labels=c("A", "B"))
+
+ggsave("./plots/supp2_indicadores_outbreak_estatico.pdf", indicatorsPlot,
+       width=18, height=8, units="cm")
+
+#############################
+# Same for weak allee
+#############################
+weakAlleeR <- calculate_Rt(maxDetected=maxDetected, I50=I50_w,
+                      maxLinks=maxLinks, Infected=Infected,
+                      pCall=pCall, NDailyCalls=NDailyCalls,
+                      pInfection=pInfection, Npop=Npop)
+
+propFound <- calculate_proportion_found(maxDetected=maxDetected,
+                                        I50=I50_w, Infected=Infected,
+                                        pCall=pCall,
+                                        NDailyCalls=NDailyCalls)
+
+meanDay <- calculate_detection_time(maxDetected=maxDetected,
+                                        I50=I50_w, Infected=Infected,
+                                        pCall=pCall,
+                                        NDailyCalls=NDailyCalls)
+
+foundDf <- data.frame(Infected=Infected, R=weakAlleeR, 
+                      propFound=propFound, notFound=Infected-Infected*propFound,
+                      time=meanDay)
+
+
+foundPlot <- ggplot(foundDf, aes(x=Infected, y=1-propFound)) +
+  geom_line(aes(color="Undetected infections")) +
+  geom_line(aes(y=R/max(alleeR), color="Re")) +
+#  geom_hline(yintercept=1/max(alleeR), linetype="dashed", color="red") +
+#  geom_vline(xintercept=point1, linetype="dashed", color="red") +
+#  ylab() +
+  scale_y_continuous(name="Proportion of undetected infections",
+                     sec.axis=sec_axis(~.*max(alleeR), name="Re")) +
+  scale_color_manual(name=element_blank(), values=c("red", "black")) +
+  theme_bw() +
+  theme(axis.title.y.right=element_text(color="red"),
+        axis.text.y.right=element_text(color="red"),
+        axis.line.y.right=element_line(colour="red"),
+        axis.ticks.y.right=element_line(colour="red"),
+        legend.position="top")
+
+timeFoundPlot <- ggplot(foundDf, aes(x=Infected, y=time)) +
+  geom_line(aes(color="Time of contact")) +
+  geom_line(aes(y=R/max(alleeR)*max(meanDay), color="Re")) +
+#  geom_hline(yintercept=1/max(alleeR)*max(meanDay), linetype="dashed", color="red") +
+#  geom_vline(xintercept=point1, linetype="dashed", color="red") +
+#  ylab() +
+  scale_y_continuous(name="Mean time to successful contact (days)",
+                     sec.axis=sec_axis(~.*max(alleeR)/max(meanDay), name="Re")) +
+  scale_color_manual(name=element_blank(), values=c("red", "black")) +
+  theme_bw() +
+  theme(axis.title.y.right=element_text(color="red"),
+        axis.text.y.right=element_text(color="red"),
+        axis.line.y.right=element_line(colour="red"),
+        axis.ticks.y.right=element_line(colour="red"),
+        legend.position="top")
+
+indicatorsPlot <- ggpubr::ggarrange(foundPlot, timeFoundPlot, nrow=1, ncol=2)
+
+ggsave("./plots/supp2_indicadores_outbreak_estatico_weakAllee.pdf", indicatorsPlot,
+       width=18, height=8, units="cm")
 

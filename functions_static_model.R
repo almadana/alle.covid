@@ -2,8 +2,8 @@ library(tidyr)
 library(gtable)
 
 # function of effective social links by day
-links_fun <- function(maxLinks, day){
-  return(maxLinks * (day^4) / (day^4 + 7^4))
+links_fun <- function(maxLinks, day, offset=0){
+  return(maxLinks * ((day+offset)^4) / ((day+offset)^4 + 7^4))
 }
 
 # calculate the expected number of links of detected individuals
@@ -24,6 +24,10 @@ calculate_Rt <- function(maxDetected, I50, maxLinks, Infected, pCall,
                          NDailyCalls, pInfection, Npop, propVac=0){
   # Expected number of detected individuals
   pDetected <- maxDetected / (I50 + Infected)
+  if (any(pDetected>1)) {
+    inds <- which(pDetected>1)
+    pDetected[inds] <- 1
+  }
   NDetected <- pDetected * Infected
   # Daily probability that a detected individual is contacted
   pContact <- 1 - (1-pCall)^(NDailyCalls/NDetected)
@@ -37,6 +41,39 @@ calculate_Rt <- function(maxDetected, I50, maxLinks, Infected, pCall,
   Rt <- pSusceptible * pInfection * (pDetected*detectedLinks + (1-pDetected)*maxLinks)
   return(Rt)
 }
+
+# calculate prop contacted for given parameters
+calculate_proportion_found <- function(maxDetected, I50, Infected, pCall,
+                         NDailyCalls){
+  # Expected number of detected individuals
+  pDetected <- maxDetected / (I50 + Infected)
+  NDetected <- pDetected * Infected
+  # Daily probability that a detected individual is contacted
+  pContact <- 1 - (1-pCall)^(NDailyCalls/NDetected)
+  # Probability that the person is contacted
+  pFound <- 1-(1-pContact)^10
+  # proportion Infected found
+  propFound <- NDetected*pFound/Infected
+  return(propFound)
+}
+
+calculate_detection_time <- function(maxDetected, I50, Infected, pCall,
+                         NDailyCalls){
+  # Expected number of detected individuals
+  pDetected <- maxDetected / (I50 + Infected)
+  NDetected <- pDetected * Infected
+  # Daily probability that a detected individual is contacted
+  pContact <- 1 - (1-pCall)^(NDailyCalls/NDetected)
+  day <- c(0:10)
+  meanDay <- NULL
+  for (infec in c(1:length(Infected))) {
+    pFound <- 1-(1-pContact[infec])^c(1:length(day))
+    pFound <- c(pFound[1], diff(pFound))
+    meanDay[infec] <- sum(day*pFound)
+  }
+  return(meanDay)
+}
+
 
 # calculates Rt for a vector of values of Infected
 calculate_Rt_range <- function(maxDetected, I50, maxLinks, Infected, pCall,
@@ -60,7 +97,7 @@ Rt_detected <- function(maxLinks, maxDetected, I50, pCall,  pInfection,
   RtSpace <- matrix(NA, ncol=length(maxDetected), nrow=length(infected))
   for(md in c(1:length(maxDetected))) {
     RtSpace[,md] <-  calculate_Rt_range(maxDetected=maxDetected[md],
-                                        I50=I50[md],
+                                        I50=I50,
                                         maxLinks=maxLinks, Infected=infected,
                                         pCall=pCall,
                                         NDailyCalls=NDailyCalls,
@@ -134,17 +171,17 @@ Rt_pInfection <- function(maxLinks, I50, maxDetected, pCall,  pInfection,
 # varNames is the names of the columns
 # infectedSubsample indicates to keep 1 of every infectedSumsample infected values
 enlongate_matrix <- function(inputMatrix, varNames, infectedSubsample) {
-  longDF <- melt.array(inputMatrix, varnames = varNames) %>%
+  longDf <- melt.array(inputMatrix, varnames = varNames) %>%
     dplyr::rename(., Rt = value) %>%
     dplyr::mutate(., Rt_exp = as.factor(as.integer(Rt > 1))) %>%
     as_tibble(.) %>%
     dplyr::filter(., (Infected %% infectedSubsample) == 0)
-  return(longDF)
+  return(longDf)
 }
 
 # plot 2D
 plot_phase_space <- function(inputDF, reverse = FALSE){
-  spacePlot <- ggplot(inputDF, aes(x = measure, y = Infected, fill = Rt_exp)) +
+  spacePlot <- ggplot(inputDF, aes(x=measure, y = Infected, fill = Rt_exp)) +
     geom_raster() +
     scale_fill_manual(values = c("#243faf", "#fa3d1b"),
                       name = element_blank(), labels = c(bquote(R[e]<1~"(Containment)"),
